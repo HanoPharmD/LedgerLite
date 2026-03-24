@@ -9,9 +9,9 @@ Free. Private. No subscription. No cloud required.
 
 ## 🌐 Live Web Version
 
-> **[Launch LedgerLite →](https://YOUR_USERNAME.github.io/ledgerlite/app.html)**
+> **[Launch LedgerLite →](https://HanoPharmD.github.io/ledgerlite/app.html)**
 
-Or visit the landing page: [https://YOUR_USERNAME.github.io/ledgerlite/](https://YOUR_USERNAME.github.io/ledgerlite/)
+Or visit the landing page: [https://HanoPharmD.github.io/ledgerlite/](https://HanoPharmD.github.io/ledgerlite/)
 
 ---
 
@@ -19,7 +19,7 @@ Or visit the landing page: [https://YOUR_USERNAME.github.io/ledgerlite/](https:/
 
 For the most reliable experience — data lives on your computer, not in a browser.
 
-**[⬇ Download Latest Release →](https://github.com/YOUR_USERNAME/ledgerlite/releases)**
+**[⬇ Download Latest Release →](https://github.com/HanoPharmD/ledgerlite/releases)**
 
 ### Build it yourself
 
@@ -82,7 +82,7 @@ See **[DEPLOY.md](./DEPLOY.md)** for the full step-by-step guide.
 **Short version:**
 1. Fork or upload files to a public GitHub repo
 2. Go to Settings → Pages → Source: `main` branch, `/ (root)` folder
-3. Save — your site is live at `https://YOUR_USERNAME.github.io/ledgerlite/`
+3. Save — your site is live at `https://HanoPharmD.github.io/ledgerlite/`
 
 ---
 
