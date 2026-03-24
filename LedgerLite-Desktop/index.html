@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LedgerLite</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Light professional blue palette */
+  --bg:#f0f4f9;
+  --sidebar:#1a3a6b;
+  --surface:#ffffff;
+  --surface2:#f5f8fd;
+  --border:#d0dcea;
+  --border-light:#b8cde0;
+  --accent:#1a5fd4;
+  --accent-h:#1550bc;
+  --accent-dim:rgba(26,95,212,.08);
+  --gold:#d97706;
+  --gold-dim:rgba(217,119,6,.1);
+  --text:#0f1f3d;
+  --text2:#3d5478;
+  --muted:#6b82a8;
+  --income:#0a7c4e;
+  --income-bg:#e8f7f1;
+  --expense:#c0392b;
+  --expense-bg:#fdf0ee;
+  --info:#1a5fd4;
+  --info-bg:#eaf0fd;
+  --warn:#92600a;
+  --warn-bg:#fef8ed;
+  --warn-border:#f6d88a;
+  /* type */
+  --display:'Plus Jakarta Sans',sans-serif;
+  --sans:'Plus Jakarta Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+  /* misc */
+  --r:10px;
+  --sh:0 2px 12px rgba(15,31,61,.08);
+  --sh-lg:0 12px 40px rgba(15,31,61,.15);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-weight:400}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:10px}
+
+/* ── HEADER ── */
+#appHeader{
+  background:var(--sidebar);
+  border-bottom:1px solid var(--border);
+  height:58px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 2rem;position:sticky;top:0;z-index:200;
+}
+.logo{
+  font-family:var(--display);font-size:1.3rem;font-weight:700;
+  color:white;letter-spacing:.01em;
+}
+.logo span{color:var(--accent)}
+.user-chip{
+  display:flex;align-items:center;gap:.6rem;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:24px;padding:.32rem .9rem .32rem .4rem;
+  font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--text2);
+}
+.user-chip:hover{border-color:var(--accent);color:var(--text)}
+.avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#2563eb);
+  color:white;font-size:.68rem;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);
+}
+
+/* ── VIEWS ── */
+.view{display:none}.view.on{display:block}
+#viewAuth{min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--bg);padding:2rem;position:relative;overflow:hidden}
+#viewAuth::before{
+  content:'';position:absolute;width:600px;height:600px;
+  background:radial-gradient(circle,rgba(26,95,212,.06) 0%,transparent 70%);
+  top:-150px;right:-150px;pointer-events:none;
+}
+#viewAuth.on{display:flex}
+
+/* ── AUTH ── */
+.auth-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:2.75rem 2.5rem;
+  width:100%;max-width:420px;box-shadow:var(--sh-lg);
+  position:relative;z-index:1;
+}
+.auth-logo{font-family:var(--display);font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
+.auth-logo span{color:var(--accent)}
+.auth-tagline{font-size:.83rem;color:var(--muted);margin-bottom:1.75rem;line-height:1.5}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:.25rem;margin-bottom:1.75rem;gap:.25rem}
+.atab{
+  flex:1;padding:.5rem;font-size:.83rem;font-weight:500;cursor:pointer;
+  border:none;background:none;color:var(--muted);
+  border-radius:8px;transition:all .2s;font-family:var(--sans);
+}
+.atab.on{background:var(--accent);color:white;font-weight:600;box-shadow:0 2px 8px rgba(26,95,212,.25)}
+.field{margin-bottom:1rem}
+.field label{
+  display:block;font-size:.7rem;font-weight:600;color:var(--muted);
+  margin-bottom:.4rem;letter-spacing:.08em;text-transform:uppercase;
+}
+.field input,.field select{
+  width:100%;padding:.7rem .95rem;
+  border:1.5px solid var(--border);border-radius:9px;
+  font-size:.88rem;font-family:var(--sans);
+  background:var(--surface2);color:var(--text);transition:all .2s;
+}
+.field input::placeholder{color:var(--muted);opacity:.8}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent);background:var(--surface2);box-shadow:0 0 0 3px var(--accent-dim)}
+.field select option{background:var(--surface2);color:var(--text)}
+.auth-err{font-size:.78rem;color:var(--expense);margin-bottom:.75rem;background:var(--expense-bg);padding:.55rem .8rem;border-radius:8px;display:none;border:1px solid rgba(240,99,99,.2)}
+.auth-note{font-size:.71rem;color:var(--muted);text-align:center;margin-top:1.25rem;line-height:1.5}
+
+/* ── DASHBOARD ── */
+#viewDashboard{padding:2.5rem 2rem;max-width:1060px;margin:0 auto}
+.dash-hd{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2.25rem;flex-wrap:wrap;gap:1rem}
+.dash-eyebrow{font-size:.68rem;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.4rem}
+.dash-title{font-family:var(--display);font-size:1.9rem;font-weight:700;color:var(--text);line-height:1.1}
+.dash-sub{font-size:.83rem;color:var(--muted);margin-top:.5rem;line-height:1.5}
+.biz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:1.25rem}
+.biz-card{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);padding:1.6rem;cursor:pointer;
+  transition:all .22s;position:relative;overflow:hidden;
+}
+.biz-card::after{
+  content:'';position:absolute;inset:0;border-radius:var(--r);
+  background:linear-gradient(135deg,rgba(79,142,247,.04),transparent);
+  opacity:0;transition:opacity .22s;pointer-events:none;
+}
+.biz-card:hover{border-color:var(--accent);box-shadow:0 8px 24px rgba(15,31,61,.12),0 0 0 1px rgba(26,95,212,.2);transform:translateY(-2px)}
+.biz-card:hover::after{opacity:1}
+.new-card{
+  border-style:dashed;background:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:150px;gap:.6rem;color:var(--muted);
+}
+.new-card:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+.biz-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:1.35rem;margin-bottom:.85rem;
+}
+.bg0{background:#dbeeff}.bg1{background:#fef3dc}.bg2{background:#e0edff}.bg3{background:#fde8e6}.bg4{background:#ede8ff}
+.biz-name{font-weight:600;font-size:.97rem;margin-bottom:.3rem;color:var(--text)}
+.biz-meta{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.biz-actions{position:absolute;top:.8rem;right:.8rem;display:flex;gap:.3rem;opacity:0;transition:opacity .2s}
+.biz-card:hover .biz-actions{opacity:1}
+.icon-btn{
+  width:28px;height:28px;border-radius:7px;
+  border:1px solid var(--border);background:var(--surface2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;transition:all .15s;color:var(--muted);
+}
+.icon-btn:hover{border-color:var(--border-light);color:var(--text)}
+.icon-btn.del:hover{background:var(--expense-bg);border-color:rgba(240,99,99,.4);color:var(--expense)}
+
+/* ── WORKSPACE ── */
+#viewWorkspace{max-width:1000px;margin:0 auto;padding:2rem 2rem}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.73rem;color:var(--muted);margin-bottom:1.5rem;font-family:var(--mono)}
+.breadcrumb a{color:var(--accent);cursor:pointer;transition:opacity .15s}
+.breadcrumb a:hover{opacity:.75}
+.ws-title{font-family:var(--display);font-size:1.65rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
+.ws-sub{font-size:.82rem;color:var(--muted);margin-bottom:1.75rem;line-height:1.5}
+.ws-tabs{display:flex;background:var(--surface2);border-radius:12px;padding:.3rem;margin-bottom:2rem;gap:.3rem;width:fit-content}
+.wtab{
+  padding:.55rem 1.35rem;font-size:.84rem;font-weight:500;cursor:pointer;
+  border:none;background:none;color:var(--muted);
+  border-radius:9px;transition:all .2s;font-family:var(--sans);
+}
+.wtab.on{background:var(--accent);color:white;font-weight:600;box-shadow:0 2px 8px rgba(26,95,212,.25)}
+
+/* ── CARDS ── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:1.85rem;margin-bottom:1.35rem;
+}
+.card-title{
+  font-size:.65rem;font-family:var(--mono);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:1.35rem;
+}
+
+/* ── STEPS ── */
+.steps-bar{
+  display:flex;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;margin-bottom:1.5rem;
+}
+.step-item{
+  flex:1;padding:.7rem .5rem;text-align:center;font-size:.68rem;
+  font-family:var(--mono);color:var(--muted);
+  border-right:1px solid var(--border);transition:all .25s;letter-spacing:.05em;
+}
+.step-item:last-child{border-right:none}
+.step-item.on{background:var(--accent);color:white;font-weight:600;letter-spacing:.04em}
+.step-item.done{background:var(--accent-dim);color:var(--accent)}
+
+/* ── DROP ZONE ── */
+.drop-zone{
+  border:2px dashed var(--border);border-radius:var(--r);
+  padding:2.75rem;text-align:center;cursor:pointer;
+  transition:all .22s;background:var(--surface2);
+}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-dim)}
+.drop-zone input{display:none}
+
+/* ── MODE CARDS ── */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:640px){.mode-grid{grid-template-columns:1fr}}
+.mode-card{
+  border:1.5px solid var(--border);border-radius:var(--r);
+  padding:1.4rem;background:var(--surface2);cursor:pointer;
+  text-align:left;transition:all .2s;font-family:var(--sans);width:100%;
+}
+.mode-card:hover,.mode-card.on{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 1px rgba(79,142,247,.2)}
+
+/* ── COLUMN PREVIEW ── */
+.col-preview{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:1rem;margin-bottom:1.1rem;overflow-x:auto;
+}
+.col-preview table{font-size:.73rem;font-family:var(--mono);border-collapse:collapse;width:100%}
+.col-preview th{background:var(--accent);color:white;padding:.35rem .65rem;text-align:left;white-space:nowrap}
+.col-preview td{padding:.3rem .65rem;border-bottom:1px solid var(--border);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+.col-preview tr:last-child td{border-bottom:none}
+
+/* ── TX TABLE ── */
+.tx-tbl{width:100%;border-collapse:collapse;font-size:.81rem}
+.tx-tbl th{
+  text-align:left;font-family:var(--mono);font-size:.62rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--border);padding:.6rem .55rem;
+  background:var(--surface2);
+}
+.tx-tbl td{padding:.55rem .55rem;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text2)}
+.tx-tbl tr.nrow{background:var(--warn-bg)}
+.tx-tbl tr:hover td{background:var(--surface2);color:var(--text)}
+.cat-sel{
+  padding:.3rem .6rem;border:1px solid var(--border);border-radius:7px;
+  font-size:.79rem;font-family:var(--sans);background:var(--surface);
+  color:var(--text);min-width:165px;cursor:pointer;
+}
+.cat-sel:focus{outline:2px solid var(--accent);outline-offset:1px}
+.cat-sel option{background:var(--surface);color:var(--text)}
+.ncr{display:flex;align-items:center;gap:.4rem;margin-top:.45rem}
+.ncr.h,.srr.h{display:none!important}
+.srr{
+  display:flex;align-items:center;gap:.4rem;margin-top:.5rem;
+  padding:.4rem .65rem;background:var(--warn-bg);
+  border:1px solid var(--warn-border);border-radius:7px;flex-wrap:wrap;
+}
+.srl{font-size:.68rem;color:var(--warn);font-family:var(--mono);white-space:nowrap}
+.apos{font-family:var(--mono);color:var(--income);font-weight:600;font-size:.8rem}
+.aneg{font-family:var(--mono);color:var(--expense);font-weight:600;font-size:.8rem}
+
+/* ── SUMMARY ── */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.sum-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:1.4rem;
+}
+.s-lbl{font-size:.62rem;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.45rem}
+.s-val{font-size:1.5rem;font-family:var(--mono);font-weight:600}
+
+/* ── TEMPLATE EDITOR ── */
+.tpl-toolbar{display:flex;align-items:center;gap:.75rem;margin-bottom:1.35rem;flex-wrap:wrap}
+.search-inp{
+  padding:.52rem .8rem;border:1.5px solid var(--border);border-radius:9px;
+  font-size:.82rem;font-family:var(--sans);background:var(--surface2);
+  color:var(--text);width:220px;
+}
+.search-inp::placeholder{color:var(--muted)}
+.search-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.rule-ct{font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-left:auto}
+.r-tbl{width:100%;border-collapse:collapse}
+.r-tbl th{
+  text-align:left;font-family:var(--mono);font-size:.62rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--border);padding:.55rem .65rem;background:var(--surface2);
+}
+.r-tbl td{padding:.52rem .65rem;border-bottom:1px solid var(--border);font-size:.82rem;vertical-align:middle;color:var(--text2)}
+.r-tbl tr:hover td{background:var(--surface2);color:var(--text)}
+.ec input,.ec select{
+  width:100%;padding:.3rem .55rem;border:1px solid transparent;
+  border-radius:7px;font-size:.81rem;font-family:var(--sans);
+  background:transparent;cursor:pointer;transition:all .15s;color:var(--text2);
+}
+.ec input:hover,.ec select:hover{border-color:var(--border);background:var(--surface2);color:var(--text)}
+.ec input:focus,.ec select:focus{border-color:var(--accent);background:var(--surface2);outline:none;color:var(--text);box-shadow:0 0 0 3px var(--accent-dim)}
+.ec select option{background:var(--surface2);color:var(--text)}
+
+/* ── CALLOUTS ── */
+.callout{
+  border-radius:10px;padding:.9rem 1.05rem;margin-bottom:1.15rem;
+  font-size:.81rem;line-height:1.6;display:flex;gap:.7rem;align-items:flex-start;
+}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:.08rem}
+.callout.info{background:var(--info-bg);border:1px solid rgba(79,142,247,.25);color:#a8c4f8}
+.callout.warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:#e8c87a}
+.callout.success{background:var(--income-bg);border:1px solid rgba(61,214,140,.25);color:#7ddcaa}
+.callout.tip{background:var(--surface2);border:1px solid var(--border);color:var(--muted)}
+.callout strong{font-weight:600;color:inherit}
+.callout ul{margin:.35rem 0 0 1rem}
+.callout li{margin-bottom:.2rem}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:.42rem;
+  padding:.58rem 1.25rem;border-radius:9px;
+  font-size:.83rem;font-weight:500;font-family:var(--sans);
+  cursor:pointer;border:none;transition:all .18s;white-space:nowrap;
+}
+.btn-p{background:var(--accent);color:white}
+.btn-p:hover{background:var(--accent-h);box-shadow:0 4px 16px rgba(79,142,247,.35)}
+.btn-s{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn-s:hover{background:var(--accent-dim)}
+.btn-g{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.btn-g:hover{color:var(--text);border-color:var(--border-light)}
+.btn-d{background:var(--expense-bg);color:var(--expense);border:1px solid rgba(240,99,99,.25)}
+.btn-d:hover{background:rgba(240,99,99,.18)}
+.btn-gold{background:var(--gold);color:#1a1200}
+.btn-gold:hover{background:#f0b94a;box-shadow:0 4px 16px rgba(232,168,66,.3)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-row{display:flex;gap:.6rem;align-items:center;margin-top:1.25rem;flex-wrap:wrap}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:.2rem .52rem;border-radius:5px;font-size:.66rem;font-weight:600;font-family:var(--mono);letter-spacing:.05em}
+.bi{background:var(--income-bg);color:var(--income)}
+.be{background:var(--expense-bg);color:var(--expense)}
+.bn{background:var(--warn-bg);color:var(--warn)}
+.ba{background:var(--accent-dim);color:var(--accent)}
+
+/* ── FILTER TABS ── */
+.ftabs{display:flex;gap:.35rem}
+.ftab{
+  padding:.3rem .72rem;border-radius:20px;
+  border:1px solid var(--border);font-size:.72rem;cursor:pointer;
+  background:var(--surface2);font-family:var(--sans);
+  transition:all .15s;color:var(--muted);
+}
+.ftab:hover{border-color:var(--border-light);color:var(--text2)}
+.ftab.on{background:var(--accent);color:white;border-color:transparent}
+
+/* ── MISC ── */
+.processing{text-align:center;padding:3.5rem}
+.spinner{
+  width:36px;height:36px;border:3px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin .7s linear infinite;margin:0 auto 1.25rem;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:2.75rem 1rem;color:var(--muted);line-height:1.65}
+.sm-inp{
+  padding:.32rem .58rem;border:1px solid var(--border);border-radius:7px;
+  font-size:.76rem;font-family:var(--mono);background:var(--surface);color:var(--text);
+}
+.sm-inp:focus{outline:none;border-color:var(--accent)}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;flex-wrap:wrap;gap:.75rem}
+.divider{border:none;border-top:1px solid var(--border);margin:1.35rem 0}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(15,31,61,.45);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px)}
+.overlay.on{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.1rem;width:100%;max-width:440px;box-shadow:var(--sh-lg)}
+.modal h3{font-family:var(--display);font-size:1.25rem;font-weight:700;margin-bottom:1.35rem;color:var(--text)}
+.mfoot{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.6rem}
+.iopt{font-size:1.45rem;cursor:pointer;padding:.35rem;border-radius:8px;border:2px solid transparent;transition:all .15s}
+.iopt:hover{background:var(--surface2)}
+.iopt.on{border-color:var(--accent);background:var(--accent-dim)}
+
+#toast{
+  position:fixed;bottom:1.75rem;right:1.75rem;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);padding:.72rem 1.2rem;border-radius:10px;
+  font-size:.8rem;font-family:var(--mono);
+  opacity:0;transform:translateY(8px);transition:all .22s;
+  pointer-events:none;z-index:999;box-shadow:var(--sh);
+}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* ── CODE CHIPS ── */
+code{background:var(--surface2);padding:.1rem .35rem;border-radius:5px;font-family:var(--mono);font-size:.79rem;color:var(--text2)}
+
+.h{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="appHeader" class="h">
+  <div class="logo">Ledger<span>Lite</span></div>
+  <div style="display:flex;align-items:center;gap:.75rem">
+    <button class="btn" style="background:rgba(255,255,255,.1);color:white;border:1px solid rgba(255,255,255,.2);padding:.3rem .8rem;font-size:.75rem" onclick="backupData()" title="Export all your data as a backup file">⬇ Backup</button>
+    <button class="btn" style="background:rgba(255,255,255,.1);color:white;border:1px solid rgba(255,255,255,.2);padding:.3rem .8rem;font-size:.75rem" onclick="document.getElementById('restoreInput').click()" title="Restore from a backup file">↑ Restore</button>
+    <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
+    <div class="user-chip" onclick="doSignOut()">
+      <div class="avatar" id="hAvatar">?</div>
+      <span id="hUser">—</span>
+      <span style="opacity:.55;font-size:.7rem">· sign out</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     AUTH
+══════════════════════════════════════ -->
+<div id="viewAuth" class="on">
+  <div class="auth-box">
+    <div class="auth-logo">Ledger<span>Lite</span></div>
+    <div class="auth-tagline">Simple bookkeeping for every business you manage</div>
+    <div class="auth-tabs">
+      <button class="atab on" onclick="swAuth('login',this)">Sign In</button>
+      <button class="atab" onclick="swAuth('register',this)">Create Account</button>
+    </div>
+    <div id="authErr" class="auth-err"></div>
+    <div class="field"><label>Username</label><input id="aUser" type="text" placeholder="your_username" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input id="aPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    <div id="regExtra" class="h">
+      <div class="field"><label>Confirm Password</label><input id="aPass2" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    </div>
+    <button class="btn btn-p" style="width:100%;justify-content:center" onclick="doAuth()" id="authBtn">Sign In</button>
+    <div class="auth-note">Data saved locally in your browser — no server, no fees.</div>
+    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:.65rem">
+      <div style="font-size:.73rem;color:var(--muted);display:flex;gap:.4rem"><span>📂</span><span><strong style="color:var(--text2)">Upload bank statements</strong> CSV or Excel</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;gap:.4rem"><span>🏷️</span><span><strong style="color:var(--text2)">Auto-categorize</strong> income &amp; expenses</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;gap:.4rem"><span>🧠</span><span><strong style="color:var(--text2)">Save rules</strong> so future uploads need no work</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;gap:.4rem"><span>⬇️</span><span><strong style="color:var(--text2)">Export</strong> to CSV, Excel or QuickBooks</span></div>
+    </div>
+    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+      <div style="font-size:.73rem;color:var(--muted);display:flex;gap:.4rem;align-items:flex-start"><span>📂</span><span><strong style="color:var(--text2)">Upload bank statements</strong> in CSV or Excel</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;gap:.4rem;align-items:flex-start"><span>🏷️</span><span><strong style="color:var(--text2)">Auto-categorize</strong> income &amp; expenses</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;gap:.4rem;align-items:flex-start"><span>🧠</span><span><strong style="color:var(--text2)">Save rules</strong> so future uploads need no work</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;gap:.4rem;align-items:flex-start"><span>⬇️</span><span><strong style="color:var(--text2)">Export</strong> to CSV, Excel, or QuickBooks</span></div>
+    </div>
+    <div style="margin-top:1rem;padding:.65rem .85rem;background:#fffbf0;border:1px solid #f6d88a;border-radius:8px;font-size:.72rem;color:#7a5c00;line-height:1.5">
+      <strong>📍 Your data stays on this device.</strong> LedgerLite saves everything in your browser's local storage — no cloud, no server. To use on another device or browser, use the <strong>Backup</strong> button in the app to export your data, then <strong>Restore</strong> it on the new device. For the most reliable experience, consider the <a href="https://github.com/YOUR_USERNAME/ledgerlite/releases" style="color:#7a5c00;text-decoration:underline" target="_blank">desktop app</a>.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════ -->
+<div id="viewDashboard" class="view">
+  <div class="dash-hd">
+    <div>
+      <div class="dash-eyebrow">Your Workspace</div>
+      <div class="dash-title" id="dashTitle">My Businesses</div>
+      <div class="dash-sub">Each business has its own category template and statement history</div>
+    </div>
+    <button class="btn btn-p" onclick="openNewBiz()">＋ New Business</button>
+  </div>
+  <!-- Backup reminder banner — shown periodically -->
+  <div id="backupBanner" class="h" style="margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;background:#fffbf0;border:1px solid #f6d88a;border-radius:10px;padding:.85rem 1.1rem">
+    <span style="font-size:1.1rem">💾</span>
+    <div style="flex:1;font-size:.82rem;color:#7a5c00;line-height:1.5">
+      <strong>Reminder: back up your data.</strong> LedgerLite stores everything in this browser only. If you clear your cache or switch computers, you'll lose your templates and history unless you have a backup.
+    </div>
+    <div style="display:flex;gap:.5rem;flex-shrink:0">
+      <button class="btn" style="background:var(--gold);color:white;padding:.38rem .9rem;font-size:.78rem" onclick="backupData();dismissBackupBanner()">⬇ Backup Now</button>
+      <button class="btn btn-g" style="padding:.38rem .75rem;font-size:.78rem" onclick="dismissBackupBanner()">Remind me later</button>
+    </div>
+  </div>
+  <div id="dashEmptyHint" class="callout info h" style="margin-bottom:1.5rem"><span class="callout-icon">👋</span>
+    <div><strong>Welcome to LedgerLite!</strong> Start by creating your first business. Each business gets its own set of categorization templates — so you can manage bookkeeping for a pharmacy, a restaurant, or any other entity all from one account. Click <strong>＋ New Business</strong> to get started.</div>
+  </div>
+  <div class="biz-grid" id="bizGrid"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     WORKSPACE
+══════════════════════════════════════ -->
+<div id="viewWorkspace" class="view">
+  <div class="breadcrumb"><a onclick="goDash()">Dashboard</a><span>›</span><span id="wsBiz">—</span></div>
+  <div class="ws-title" id="wsTitle">—</div>
+  <div class="ws-sub" id="wsSub">—</div>
+  <div class="ws-tabs">
+    <button class="wtab on" onclick="swWs('bk',this)">📊 Process Statement</button>
+    <button class="wtab" onclick="swWs('tpl',this)">⚙️ Manage Template</button>
+    <button class="wtab" onclick="swWs('report',this)">📈 Monthly Report</button>
+    <button class="wtab" onclick="swWs('ai',this)">🤖 AI Insights</button>
+  </div>
+
+  <!-- ── BOOKKEEPING TAB ── -->
+  <div id="wsBk">
+    <div class="steps-bar">
+      <div class="step-item on" id="s1">01 / Mode</div>
+      <div class="step-item"    id="s2">02 / Template</div>
+      <div class="step-item"    id="s3">03 / Upload</div>
+      <div class="step-item"    id="s4">04 / Map Columns</div>
+      <div class="step-item"    id="s5">05 / Review</div>
+      <div class="step-item"    id="s6">06 / Export</div>
+    </div>
+
+    <!-- Step 1: Mode -->
+    <div id="pMode">
+      <div class="callout info"><span class="callout-icon">ℹ️</span>
+        <div><strong>How LedgerLite works:</strong> Upload a bank statement (CSV or Excel) and LedgerLite will categorize each transaction as Income or Expense. The first time, you walk through it manually. After that, your rules auto-apply to every future upload.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Choose a Mode</div>
+        <div class="mode-grid">
+          <button class="mode-card" onclick="pickMode('first',this)">
+            <div style="font-size:1.4rem;margin-bottom:.5rem">🗂️</div>
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:.3rem">First-Time Setup</div>
+            <div style="font-size:.76rem;color:var(--muted);line-height:1.5">Start fresh. Walk through your statement line by line, assign categories, and save rules for future use.</div>
+            <div style="margin-top:.65rem;font-size:.72rem;color:var(--accent);font-weight:500;font-family:var(--mono)">→ Use this the first time</div>
+          </button>
+          <button class="mode-card" onclick="pickMode('apply',this)">
+            <div style="font-size:1.4rem;margin-bottom:.5rem">⚡</div>
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:.3rem">Apply Template</div>
+            <div style="font-size:.76rem;color:var(--muted);line-height:1.5">Your saved rules are applied automatically. You only review transactions the system doesn't recognize.</div>
+            <div style="margin-top:.65rem;font-size:.72rem;color:var(--accent);font-weight:500;font-family:var(--mono)">→ Use this for recurring uploads</div>
+          </button>
+          <button class="mode-card" onclick="pickMode('import',this)">
+            <div style="font-size:1.4rem;margin-bottom:.5rem">📋</div>
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:.3rem">Import Existing File</div>
+            <div style="font-size:.76rem;color:var(--muted);line-height:1.5">Already categorized your books in Excel or CSV? Upload it and LedgerLite will learn your categories from it.</div>
+            <div style="margin-top:.65rem;font-size:.72rem;color:var(--accent);font-weight:500;font-family:var(--mono)">→ Use to import your existing work</div>
+          </button>
+        </div>
+        <div id="modeNote" class="h" style="margin-top:1rem"></div>
+      </div>
+    </div>
+
+    <!-- Step 2: Template Picker -->
+    <div id="pTplPick" class="h">
+      <div class="callout info"><span class="callout-icon">🗂️</span>
+        <div><strong>Select a template for this upload.</strong> A template is a saved set of rules that maps keywords in transaction descriptions to categories (e.g. "cvs pharmacy" → Expense: Supplies). All files you upload in this session will be auto-categorized using the selected template's rules. You can create and manage templates under the <strong>⚙️ Manage Template</strong> tab.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Select Template</div>
+        <div id="tplPickList" style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem"></div>
+        <div class="btn-row">
+          <button class="btn btn-g" onclick="goStep(1)">← Back</button>
+          <button class="btn btn-p" onclick="goStep(3)">Continue →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Upload -->
+    <div id="pUpload" class="h">
+      <div id="uploadInstructions"></div>
+      <div class="card">
+        <div class="card-title" id="uploadTitle">Upload Files</div>
+        <div class="callout tip" id="multiFileNote"><span class="callout-icon">💡</span>
+          <div>You can upload <strong>multiple files at once</strong> — hold Shift or Ctrl/Cmd to select several. Each file will get its own source label so you can tell transactions apart in the merged output.</div>
+        </div>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileIn').click()">
+          <input type="file" id="fileIn" accept=".csv,.xlsx,.xls" multiple onchange="handleFiles(event)">
+          <div style="font-size:1.9rem;margin-bottom:.6rem">📂</div>
+          <div style="font-size:.88rem;color:var(--muted)"><strong style="color:var(--text)">Click to upload</strong> or drag & drop<br><span style="font-size:.76rem">Select one or multiple CSV / Excel files</span></div>
+        </div>
+        <!-- Staged file list -->
+        <div id="stagedFiles" class="h" style="margin-top:1.25rem">
+          <div class="card-title" style="margin-bottom:.75rem">Files Staged <span id="stagedCount" style="color:var(--accent)">0</span></div>
+          <div id="stagedList" style="display:flex;flex-direction:column;gap:.5rem"></div>
+          <div class="btn-row">
+            <button class="btn btn-g" onclick="goStep(1)">← Back</button>
+            <button class="btn btn-p" onclick="processAllFiles()">Map Columns →</button>
+          </div>
+        </div>
+        <div class="btn-row" id="uploadBackRow">
+          <button class="btn btn-g" onclick="goStep(2)">← Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Processing -->
+    <div id="pProc" class="h">
+      <div class="card processing"><div class="spinner"></div><div id="procMsg" style="font-size:.87rem;color:var(--muted);font-family:var(--mono)">Reading…</div></div>
+    </div>
+
+    <!-- Step 3: Column Mapping -->
+    <div id="pMap" class="h">
+      <div class="callout warn"><span class="callout-icon">📌</span>
+        <div><strong>Tell LedgerLite which columns are which.</strong> Every bank exports files differently — some call it "Amount", others "Debit/Credit", others "Memo" vs "Description". LedgerLite has auto-detected the best match below, but <strong>always verify before continuing</strong>. Getting this wrong will cause amounts or dates to be read incorrectly.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Column Mapping</div>
+        <div id="colPreview" class="col-preview"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="mapFields"></div>
+        <!-- Amount format selector — shown after file is read -->
+        <div id="mapAmtFormat" class="h" style="margin-top:1rem">
+          <hr class="divider">
+          <div class="callout info"><span class="callout-icon">💡</span><div><strong>How are amounts stored in your file?</strong> Some bank exports use one column (negative = outgoing), others split into two columns (Debit + Credit, or Withdrawals + Deposits). Select the format that matches your file.</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1rem">
+            <button class="mode-card on" id="afmt-single" onclick="pickAmtFmt('single',this)" style="padding:.85rem">
+              <div style="font-weight:600;font-size:.82rem;margin-bottom:.25rem">Single Column</div>
+              <div style="font-size:.73rem;color:var(--muted)">One amount column, negatives = outgoing</div>
+            </button>
+            <button class="mode-card" id="afmt-dc" onclick="pickAmtFmt('dc',this)" style="padding:.85rem">
+              <div style="font-weight:600;font-size:.82rem;margin-bottom:.25rem">Debit / Credit</div>
+              <div style="font-size:.73rem;color:var(--muted)">Two columns — one for in, one for out</div>
+            </button>
+            <button class="mode-card" id="afmt-dw" onclick="pickAmtFmt('dw',this)" style="padding:.85rem">
+              <div style="font-weight:600;font-size:.82rem;margin-bottom:.25rem">Deposit / Withdrawal</div>
+              <div style="font-size:.73rem;color:var(--muted)">Two columns — Deposits and Withdrawals</div>
+            </button>
+          </div>
+          <div id="dualColFields" class="h" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="field"><label id="col2aLabel">Column A (Money In)</label><select id="mapAmtA"></select></div>
+            <div class="field"><label id="col2bLabel">Column B (Money Out)</label><select id="mapAmtB"></select></div>
+          </div>
+        </div>
+        <div id="mapImportExtra" class="h" style="margin-top:1rem">
+          <hr class="divider">
+          <div class="callout tip"><span class="callout-icon">💡</span><div>For <strong>Import Existing</strong>: Select which column contains your existing categories. LedgerLite will read those to build your rules.</div></div>
+          <div class="field" style="max-width:320px"><label>Category Column</label><select id="mapCatCol"></select></div>
+        </div>
+        <div class="btn-row">
+          <div id="mapFileIndicator" style="font-size:.75rem;font-family:var(--mono);color:var(--muted)"></div>
+          <button class="btn btn-g" onclick="goStep(3)">← Back</button>
+          <button class="btn btn-p" onclick="confirmMapping()">Continue →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Review -->
+    <div id="pReview" class="h">
+      <div id="reviewInstructions"></div><!-- injected per mode -->
+      <div class="card">
+        <div class="rh">
+          <div class="card-title" style="margin-bottom:0">Review Transactions</div>
+          <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+            <div class="ftabs">
+              <button class="ftab on" onclick="filterTx('all',this)">All</button>
+              <button class="ftab" onclick="filterTx('new',this)">⚠ Needs Review</button>
+              <button class="ftab" onclick="filterTx('income',this)">Income</button>
+              <button class="ftab" onclick="filterTx('expense',this)">Expense</button>
+              <div id="sourceTabs" style="display:flex;gap:.35rem;margin-left:.5rem;padding-left:.5rem;border-left:1px solid var(--border)"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--muted)">
+              <span>📅</span>
+              <input type="date" id="dateFrom" class="sm-inp" style="font-size:.75rem" onchange="applyDateFilter()" title="From date">
+              <span>→</span>
+              <input type="date" id="dateTo" class="sm-inp" style="font-size:.75rem" onchange="applyDateFilter()" title="To date">
+              <button class="btn btn-g" style="padding:.25rem .55rem;font-size:.72rem" onclick="clearDateFilter()">✕</button>
+            </div>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tx-tbl">
+            <thead><tr>
+              <th>Source</th><th>Date</th><th>Description</th><th>Amount</th><th>Category</th>
+              <th id="mHead" class="h">Marker Keyword</th><th>Status</th>
+            </tr></thead>
+            <tbody id="txBody"></tbody>
+          </table>
+        </div>
+        <div class="callout tip" style="margin-top:1rem"><span class="callout-icon">💡</span>
+          <div>When you're done reviewing, click <strong>Save &amp; Export →</strong>. Any marker keywords you set will be saved to your template automatically so future uploads recognize the same transactions.</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-g" onclick="goStep(3)">← Back</button>
+          <button class="btn btn-p" onclick="goExport()">Save & Export →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6: Export -->
+    <div id="pExport" class="h">
+      <div class="callout success"><span class="callout-icon">✅</span>
+        <div><strong>Done!</strong> Your transactions are categorized. Preview the export below, choose your output format, then download.</div>
+      </div>
+
+      <!-- Summary totals -->
+      <div class="card">
+        <div class="card-title">Summary</div>
+        <div class="sum-grid" id="sumGrid"></div>
+        <div id="srcBreakdown"></div>
+      </div>
+
+      <!-- Output format picker -->
+      <div class="card">
+        <div class="card-title">Output Format</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem" id="fmtPicker">
+          <button class="mode-card on" id="fmt-single" onclick="pickFmt('single',this)" style="padding:1rem;text-align:left">
+            <div style="font-size:1.1rem;margin-bottom:.4rem">🔢</div>
+            <div style="font-weight:600;font-size:.83rem;margin-bottom:.2rem">Single Amount Column</div>
+            <div style="font-size:.73rem;color:var(--muted);line-height:1.4">Positive = income, negative = expense.</div>
+          </button>
+          <button class="mode-card" id="fmt-debit" onclick="pickFmt('debit',this)" style="padding:1rem;text-align:left">
+            <div style="font-size:1.1rem;margin-bottom:.4rem">↕️</div>
+            <div style="font-weight:600;font-size:.83rem;margin-bottom:.2rem">Debit / Credit Columns</div>
+            <div style="font-size:.73rem;color:var(--muted);line-height:1.4">Separate columns for in and out.</div>
+          </button>
+          <button class="mode-card" id="fmt-orig" onclick="pickFmt('orig',this)" style="padding:1rem;text-align:left">
+            <div style="font-size:1.1rem;margin-bottom:.4rem">📄</div>
+            <div style="font-weight:600;font-size:.83rem;margin-bottom:.2rem">Keep Original Format</div>
+            <div style="font-size:.73rem;color:var(--muted);line-height:1.4">Amounts exactly as they were in your file.</div>
+          </button>
+        </div>
+        <div class="btn-row" style="margin-top:1.25rem">
+          <button class="btn btn-p" onclick="dlCSV()">⬇ Download CSV</button>
+          <button class="btn btn-s" onclick="dlXLSX()">⬇ Download Excel (.xlsx)</button>
+          <button class="btn btn-s" onclick="dlIIF()" style="border-color:var(--gold);color:var(--gold)" title="QuickBooks Desktop IIF format">⬇ Download QuickBooks (.iif)</button>
+          <button class="btn btn-g" onclick="bkReset()" style="margin-left:auto">Process Another File</button>
+        </div>
+        <div class="callout tip" style="margin-top:1rem"><span class="callout-icon">💡</span>
+          <div><strong>QuickBooks (.iif)</strong> works with <strong>QuickBooks Desktop</strong> (Pro, Premier, Enterprise). Go to <em>File → Utilities → Import → IIF Files</em> to import. Note: QuickBooks Online does not support IIF — use CSV instead and import via Bank Feeds.</div>
+        </div>
+      </div>
+
+      <!-- Live export preview -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
+          <div>
+            <div class="card-title" style="margin-bottom:.15rem">Export Preview</div>
+            <div style="font-size:.75rem;color:var(--muted)">Showing what will be in your downloaded file — updates when you change format above</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <div class="ftabs" id="prevFilterTabs">
+              <button class="ftab on" onclick="filterPreview('all',this)">All</button>
+              <button class="ftab" onclick="filterPreview('income',this)">Income</button>
+              <button class="ftab" onclick="filterPreview('expense',this)">Expense</button>
+            </div>
+            <input type="text" class="search-inp" id="prevSearch" style="width:180px" placeholder="Search…" oninput="renderPreview()">
+          </div>
+        </div>
+        <div style="overflow-x:auto;max-height:420px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
+          <table class="tx-tbl" id="prevTable" style="margin:0">
+            <thead id="prevHead"></thead>
+            <tbody id="prevBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:.75rem;font-size:.72rem;color:var(--muted);font-family:var(--mono)" id="prevCount"></div>
+      </div>
+    </div>
+  </div><!-- /wsBk -->
+
+  <!-- ── TEMPLATE TAB ── -->
+  <div id="wsTpl" class="h">
+    <div class="callout info"><span class="callout-icon">ℹ️</span>
+      <div><strong>Multiple templates per business.</strong> Create separate templates for different accounts — e.g. "Chase Checking", "AmEx Card", "Payroll". Each has its own rules. Select the active template before processing a statement.</div>
+    </div>
+
+    <!-- Template selector bar -->
+    <div class="card" style="padding:1.25rem 1.6rem">
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span style="font-size:.7rem;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Templates</span>
+        <div id="tplTabs" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+        <button class="btn btn-g" style="padding:.38rem .85rem;font-size:.78rem" onclick="openNewTpl()">＋ New Template</button>
+      </div>
+    </div>
+
+    <div class="callout tip"><span class="callout-icon">💡</span>
+      <div><strong>Tips for good markers:</strong> Use short, distinctive keywords that consistently appear in a payee's transaction description — e.g. <code>cvs pharmacy</code>, <code>adt security</code>, <code>payroll</code>. Markers are case-insensitive. To <strong>rename</strong> a template, right-click its tab. Rules only save when you click <strong>💾 Save Template</strong>.</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
+        <div>
+          <div class="card-title" style="margin-bottom:.2rem">Rules for: <span id="activeTplName" style="color:var(--accent)">—</span></div>
+        </div>
+        <button class="btn btn-d" style="padding:.35rem .8rem;font-size:.76rem" onclick="delActiveTpl()">Delete Template</button>
+      </div>
+      <div class="tpl-toolbar">
+        <input type="text" class="search-inp" id="rSearch" placeholder="Search rules…" oninput="renderRules(this.value)">
+        <button class="btn btn-p" onclick="addRule()">＋ Add Rule</button>
+        <button class="btn btn-d" onclick="clearRules()">Clear Rules</button>
+        <span class="rule-ct" id="rCt">0 rules</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="r-tbl">
+          <thead><tr>
+            <th style="width:38%">Marker Keyword <span style="font-weight:400;opacity:.6">(what to look for in the description)</span></th>
+            <th style="width:47%">Category <span style="font-weight:400;opacity:.6">(what to assign when found)</span></th>
+            <th style="width:15%"></th>
+          </tr></thead>
+          <tbody id="rBody"></tbody>
+        </table>
+      </div>
+      <div id="rEmpty" class="empty h">
+        <div style="font-size:2.2rem;margin-bottom:.75rem">📭</div>
+        <div>No rules yet. Process a statement in <strong>First-Time Setup</strong> mode to build rules, or click <strong>＋ Add Rule</strong> above.</div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="saveTpl()">💾 Save Template</button></div>
+    </div>
+  </div>
+  <!-- ── MONTHLY REPORT TAB ── -->
+  <div id="wsReport" class="h">
+    <div class="callout info"><span class="callout-icon">📈</span>
+      <div><strong>Monthly Summary Report.</strong> This report is built from all statements you've processed for this business. Upload and export statements to build up your history — each export is automatically saved here.</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+        <div class="card-title" style="margin-bottom:0">Month-by-Month Overview</div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <select id="reportYear" class="sm-inp" style="font-size:.8rem" onchange="renderReport()"></select>
+          <button class="btn btn-s" style="padding:.38rem .85rem;font-size:.78rem" onclick="exportReportCSV()">⬇ Export Report</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="r-tbl" id="reportTable">
+          <thead><tr>
+            <th>Month</th><th style="text-align:right">Income</th><th style="text-align:right">Expenses</th>
+            <th style="text-align:right">Net</th><th style="text-align:right">Top Expense Category</th>
+          </tr></thead>
+          <tbody id="reportBody"></tbody>
+          <tfoot id="reportFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Category Breakdown</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem" id="catBreakdown"></div>
+    </div>
+    <div id="reportEmpty" class="empty">
+      <div style="font-size:2.2rem;margin-bottom:.75rem">📊</div>
+      <div>No history yet. Process and export a statement to start building your monthly report.</div>
+    </div>
+  </div>
+
+  <!-- ── AI INSIGHTS TAB ── -->
+  <div id="wsAI" class="h">
+    <div class="callout info"><span class="callout-icon">🤖</span>
+      <div><strong>AI Business Insights.</strong> Claude analyzes your categorized transaction history and gives you actionable insights — top expenses, income trends, anomalies, and efficiency opportunities. Powered by Anthropic's Claude AI.</div>
+    </div>
+    <div class="card" id="aiPromptCard">
+      <div class="card-title">What would you like to analyze?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem" id="aiQuickPrompts">
+        <button class="mode-card" style="padding:1rem;text-align:left" onclick="runAI('overview')">
+          <div style="font-size:1.1rem;margin-bottom:.3rem">📊</div>
+          <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem">Full Business Overview</div>
+          <div style="font-size:.74rem;color:var(--muted)">Income trends, expense patterns, net performance summary</div>
+        </button>
+        <button class="mode-card" style="padding:1rem;text-align:left" onclick="runAI('expenses')">
+          <div style="font-size:1.1rem;margin-bottom:.3rem">💸</div>
+          <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem">Expense Deep Dive</div>
+          <div style="font-size:.74rem;color:var(--muted)">Where is most money going? What's growing? What can be reduced?</div>
+        </button>
+        <button class="mode-card" style="padding:1rem;text-align:left" onclick="runAI('income')">
+          <div style="font-size:1.1rem;margin-bottom:.3rem">📈</div>
+          <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem">Income Analysis</div>
+          <div style="font-size:.74rem;color:var(--muted)">Revenue trends, best months, consistency analysis</div>
+        </button>
+        <button class="mode-card" style="padding:1rem;text-align:left" onclick="runAI('efficiency')">
+          <div style="font-size:1.1rem;margin-bottom:.3rem">⚡</div>
+          <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem">Efficiency & Flags</div>
+          <div style="font-size:.74rem;color:var(--muted)">Unusual spikes, potential savings, anomalies to investigate</div>
+        </button>
+      </div>
+      <div style="display:flex;gap:.75rem;align-items:flex-start">
+        <textarea id="aiCustomQ" class="search-inp" style="width:100%;height:72px;resize:vertical;padding:.65rem .85rem;font-family:var(--sans);font-size:.84rem" placeholder="Or ask a specific question about your finances…"></textarea>
+        <button class="btn btn-p" onclick="runAI('custom')" style="white-space:nowrap;align-self:flex-end">Ask AI →</button>
+      </div>
+      <div id="aiNoData" class="callout warn h" style="margin-top:1rem"><span class="callout-icon">⚠️</span>
+        <div>No transaction history found for this business. Process and export at least one statement first to enable AI insights.</div>
+      </div>
+    </div>
+    <div id="aiLoading" class="h">
+      <div class="card processing"><div class="spinner"></div><div style="font-size:.87rem;color:var(--muted);font-family:var(--mono)" id="aiLoadMsg">Analyzing your business data…</div></div>
+    </div>
+    <div id="aiResult" class="h">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div class="card-title" style="margin-bottom:0">AI Analysis</div>
+          <button class="btn btn-g" style="padding:.35rem .8rem;font-size:.76rem" onclick="document.getElementById('aiResult').classList.add('h');document.getElementById('aiPromptCard').classList.remove('h')">← New Question</button>
+        </div>
+        <div id="aiResultContent" style="font-size:.87rem;line-height:1.75;color:var(--text2);white-space:pre-wrap"></div>
+      </div>
+    </div>
+  </div>
+</div><!-- /workspace -->
+
+<!-- New Template Modal -->
+<div class="overlay" id="mNewTpl">
+  <div class="modal">
+    <h3>New Template</h3>
+    <div class="field"><label>Template Name</label><input id="ntName" type="text" placeholder="e.g. Chase Checking, AmEx Card" onkeydown="if(event.key==='Enter')confirmNewTpl()"></div>
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="closeM('mNewTpl')">Cancel</button>
+      <button class="btn btn-p" onclick="confirmNewTpl()">Create</button>
+    </div>
+  </div>
+</div>
+<!-- Rename Template Modal -->
+<div class="overlay" id="mRenTpl">
+  <div class="modal">
+    <h3>Rename Template</h3>
+    <div class="field"><label>Name</label><input id="rtName" type="text" onkeydown="if(event.key==='Enter')confirmRenTpl()"></div>
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="closeM('mRenTpl')">Cancel</button>
+      <button class="btn btn-p" onclick="confirmRenTpl()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="mNewBiz">
+  <div class="modal">
+    <h3>New Business</h3>
+    <div class="field"><label>Business Name</label><input id="nbName" type="text" placeholder="e.g. Riverside Café" onkeydown="if(event.key==='Enter')confirmNewBiz()"></div>
+    <div class="field">
+      <label>Icon</label>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap" id="iconPicker">
+        <span class="iopt" data-i="🏢" onclick="pickIcon(this)">🏢</span>
+        <span class="iopt" data-i="🏥" onclick="pickIcon(this)">🏥</span>
+        <span class="iopt" data-i="🛒" onclick="pickIcon(this)">🛒</span>
+        <span class="iopt" data-i="🍽️" onclick="pickIcon(this)">🍽️</span>
+        <span class="iopt on" data-i="💼" onclick="pickIcon(this)">💼</span>
+        <span class="iopt" data-i="🔧" onclick="pickIcon(this)">🔧</span>
+        <span class="iopt" data-i="💊" onclick="pickIcon(this)">💊</span>
+        <span class="iopt" data-i="🏗️" onclick="pickIcon(this)">🏗️</span>
+        <span class="iopt" data-i="📦" onclick="pickIcon(this)">📦</span>
+        <span class="iopt" data-i="🌿" onclick="pickIcon(this)">🌿</span>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="closeM('mNewBiz')">Cancel</button>
+      <button class="btn btn-p" onclick="confirmNewBiz()">Create</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="mRename">
+  <div class="modal">
+    <h3>Rename Business</h3>
+    <div class="field"><label>Name</label><input id="rnInput" type="text" onkeydown="if(event.key==='Enter')confirmRename()"></div>
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="closeM('mRename')">Cancel</button>
+      <button class="btn btn-p" onclick="confirmRename()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ─────────────────────────────────────────────
+// DEFAULTS
+// ─────────────────────────────────────────────
+const DCAT=[
+  'Income: Sales / Revenue','Income: Payment Received','Income: Refund',
+  'Income: Grant / Donation','Income: Other',
+  'Expense: Payroll / Wages','Expense: Rent / Lease','Expense: Utilities',
+  'Expense: Supplies / Inventory','Expense: Insurance','Expense: Taxes / Fees',
+  'Expense: Software / Subscriptions','Expense: Professional Services',
+  'Expense: Marketing','Expense: Travel / Transportation',
+  'Expense: Meals / Entertainment','Expense: Equipment','Expense: Bank Charges',
+  'Expense: Other','Skip / Transfer'
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let CU=null,BIZ=[],AID=null,BKMODE=null,TXS=[],selIcon='💼',rnBiz=null,editRules=[];
+let exportFmt='single'; // 'single'|'debit'|'orig'
+
+// Multi-file state
+// stagedFiles: [{file, label, rows, cols, amtFmt}]
+// pendingMapIdx: which file we're currently mapping
+let stagedFiles=[],pendingMapIdx=0;
+
+// ─────────────────────────────────────────────
+// STORAGE
+// ─────────────────────────────────────────────
+const sk=s=>`ll_${CU}_${s}`;
+function loadBiz(){
+  try{BIZ=JSON.parse(localStorage.getItem(sk('biz'))||'[]');}catch{BIZ=[];}
+  BIZ.forEach(b=>{
+    if(!b.templates){b.templates=[{id:'t1',name:'Default',rules:b.rules||[]}];b.activeTplId='t1';delete b.rules;}
+  });
+}
+function saveBiz(){localStorage.setItem(sk('biz'),JSON.stringify(BIZ));}
+function GB(id){return BIZ.find(b=>b.id===id);}
+function GA(){return GB(AID);}
+function GTpls(){return GA()?.templates||[];}
+function GTplId(){return GA()?.activeTplId||GTpls()[0]?.id;}
+function GTpl(){return GTpls().find(t=>t.id===GTplId())||GTpls()[0]||{id:'',name:'',rules:[]};}
+function GR(){return GTpl().rules||[];}
+function SR(r){const tpl=GTpl();if(tpl){tpl.rules=r;saveBiz();}}
+function setActiveTpl(tid){const b=GA();if(b){b.activeTplId=tid;saveBiz();}}
+function updateWsSub(){
+  const b=GA();if(!b)return;
+  const tpls=GTpls();const tpl=GTpl();
+  document.getElementById('wsSub').textContent=
+    `${tpls.length} template${tpls.length!==1?'s':''} · Active: ${tpl.name} (${tpl.rules.length} rule${tpl.rules.length!==1?'s':''})`;
+}
+
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+let authMode='login';
+function swAuth(m,btn){
+  authMode=m;
+  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('regExtra').classList.toggle('h',m!=='register');
+  document.getElementById('authBtn').textContent=m==='login'?'Sign In':'Create Account';
+  document.getElementById('authErr').style.display='none';
+}
+function doAuth(){
+  const u=document.getElementById('aUser').value.trim().toLowerCase();
+  const p=document.getElementById('aPass').value;
+  document.getElementById('authErr').style.display='none';
+  if(!u||!p){showE('Fill in all fields.');return;}
+  const all=JSON.parse(localStorage.getItem('ll_users')||'{}');
+  if(authMode==='login'){
+    if(!all[u]){showE('Username not found.');return;}
+    if(all[u]!==btoa(p)){showE('Incorrect password.');return;}
+    signIn(u);
+  } else {
+    const p2=document.getElementById('aPass2').value;
+    if(p!==p2){showE('Passwords do not match.');return;}
+    if(p.length<4){showE('Password must be 4+ characters.');return;}
+    if(all[u]){showE('Username already taken.');return;}
+    all[u]=btoa(p);localStorage.setItem('ll_users',JSON.stringify(all));
+    signIn(u);
+  }
+}
+function showE(m){const e=document.getElementById('authErr');e.textContent=m;e.style.display='block';}
+function signIn(u){
+  CU=u;localStorage.setItem('ll_session',u);loadBiz();
+  document.getElementById('hUser').textContent=u;
+  document.getElementById('hAvatar').textContent=u[0].toUpperCase();
+  document.getElementById('appHeader').classList.remove('h');
+  sv('viewDashboard');hv('viewAuth');hv('viewWorkspace');
+  renderGrid();
+  document.getElementById('dashTitle').textContent=`Welcome back, ${u}`;
+  setTimeout(checkBackupReminder, 1500);
+}
+function doSignOut(){
+  if(!CU){return;}
+  // Offer backup before leaving
+  const last=parseInt(localStorage.getItem(BACKUP_KEY+CU)||'0');
+  const hoursSince=(Date.now()-last)/(1000*60*60);
+  if(BIZ.length&&hoursSince>24){
+    const choice=confirm("Before you sign out — would you like to download a backup of your data?\n\nClick OK to backup and sign out, or Cancel to sign out without backing up.");
+    if(choice){backupData();}
+  } else {
+    if(!confirm('Sign out?'))return;
+  }
+  CU=null;BIZ=[];AID=null;
+  localStorage.removeItem('ll_session');
+  document.getElementById('appHeader').classList.add('h');
+  ['aUser','aPass','aPass2'].forEach(id=>document.getElementById(id).value='');
+  hv('viewDashboard');hv('viewWorkspace');
+  document.getElementById('viewAuth').classList.add('on');
+  document.getElementById('viewAuth').style.display='';
+}
+const BGS=['bg0','bg1','bg2','bg3','bg4'];
+(()=>{const s=localStorage.getItem('ll_session');if(s){const a=JSON.parse(localStorage.getItem('ll_users')||'{}');if(a[s])signIn(s);}})();
+
+// ─────────────────────────────────────────────
+// VIEW HELPERS
+// ─────────────────────────────────────────────
+function sv(id){const el=document.getElementById(id);el.classList.add('on');el.style.display='';}
+function hv(id){const el=document.getElementById(id);el.classList.remove('on');el.style.display='none';}
+function goDash(){hv('viewWorkspace');sv('viewDashboard');renderGrid();}
+function goWs(bid){
+  AID=bid;const b=GA();
+  if(!b.activeTplId||!b.templates.find(t=>t.id===b.activeTplId))b.activeTplId=b.templates[0]?.id||'';
+  hv('viewDashboard');sv('viewWorkspace');
+  document.getElementById('wsBiz').textContent=b.name;
+  document.getElementById('wsTitle').textContent=b.name;
+  updateWsSub();
+  bkReset();
+  document.querySelectorAll('.wtab').forEach(t=>t.classList.remove('on'));
+  document.querySelector('.wtab').classList.add('on');
+  sv('wsBk');document.getElementById('wsTpl').classList.add('h');
+  document.getElementById('wsReport').classList.add('h');
+  document.getElementById('wsAI').classList.add('h');
+}
+function swWs(tab,btn){
+  document.querySelectorAll('.wtab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('wsBk').classList.toggle('h',tab!=='bk');
+  document.getElementById('wsTpl').classList.toggle('h',tab!=='tpl');
+  document.getElementById('wsReport').classList.toggle('h',tab!=='report');
+  document.getElementById('wsAI').classList.toggle('h',tab!=='ai');
+  if(tab==='tpl'){renderTplTabs();renderRules();}
+  if(tab==='report'){renderReport();}
+  if(tab==='ai'){
+    const hasData=getAllHistoryTxs().length>0;
+    document.getElementById('aiNoData').classList.toggle('h',hasData);
+  }
+}
+
+// ─────────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────────
+function renderGrid(){
+  const g=document.getElementById('bizGrid');g.innerHTML='';
+  const hint=document.getElementById('dashEmptyHint');
+  if(hint) hint.classList.toggle('h', BIZ.length>0);
+  BIZ.forEach((b,i)=>{
+    const d=document.createElement('div');
+    d.className='biz-card';
+    d.onclick=e=>{if(!e.target.closest('.biz-actions'))goWs(b.id);};
+    d.innerHTML=`
+      <div class="biz-actions">
+        <button class="icon-btn" title="Rename" onclick="openRename('${b.id}')">✏️</button>
+        <button class="icon-btn del" title="Delete" onclick="delBiz('${b.id}')">🗑</button>
+      </div>
+      <div class="biz-icon ${BGS[i%BGS.length]}">${b.icon}</div>
+      <div class="biz-name">${b.name}</div>
+      <div class="biz-meta">${(b.templates||[]).length} template${(b.templates||[]).length!==1?'s':''}</div>`;
+    g.appendChild(d);
+  });
+  const nc=document.createElement('div');
+  nc.className='biz-card new-card';nc.onclick=openNewBiz;
+  nc.innerHTML='<div style="font-size:1.8rem;color:var(--muted)">＋</div><div style="font-size:.85rem;font-weight:500;color:var(--muted)">New Business</div>';
+  g.appendChild(nc);
+}
+
+// ─────────────────────────────────────────────
+// BUSINESS CRUD
+// ─────────────────────────────────────────────
+function openNewBiz(){
+  selIcon='💼';document.getElementById('nbName').value='';
+  document.querySelectorAll('.iopt').forEach(e=>e.classList.toggle('on',e.dataset.i==='💼'));
+  openM('mNewBiz');setTimeout(()=>document.getElementById('nbName').focus(),80);
+}
+function pickIcon(el){document.querySelectorAll('.iopt').forEach(e=>e.classList.remove('on'));el.classList.add('on');selIcon=el.dataset.i;}
+function confirmNewBiz(){
+  const n=document.getElementById('nbName').value.trim();
+  if(!n){showToast('Enter a business name');return;}
+  BIZ.push({id:Date.now().toString(),name:n,icon:selIcon,templates:[{id:'t1',name:'Default',rules:[]}],activeTplId:'t1'});
+  saveBiz();closeM('mNewBiz');renderGrid();showToast(`"${n}" created`);
+}
+function openRename(id){
+  rnBiz=id;document.getElementById('rnInput').value=GB(id).name;
+  openM('mRename');setTimeout(()=>document.getElementById('rnInput').focus(),80);
+}
+function confirmRename(){
+  const n=document.getElementById('rnInput').value.trim();if(!n)return;
+  GB(rnBiz).name=n;saveBiz();closeM('mRename');renderGrid();showToast('Renamed');
+}
+function delBiz(id){
+  const b=GB(id);if(!confirm(`Delete "${b.name}" and all its data?`))return;
+  BIZ=BIZ.filter(x=>x.id!==id);saveBiz();renderGrid();showToast(`"${b.name}" deleted`);
+}
+
+// ─────────────────────────────────────────────
+// STEP NAVIGATION (now 6 steps)
+// ─────────────────────────────────────────────
+function goStep(n){
+  ['pMode','pTplPick','pUpload','pMap','pReview','pExport'].forEach((v,i)=>document.getElementById(v).classList.toggle('h',i!==n-1));
+  document.getElementById('pProc').classList.add('h');
+  ['s1','s2','s3','s4','s5','s6'].forEach((s,i)=>{
+    document.getElementById(s).classList.toggle('on',i===n-1);
+    document.getElementById(s).classList.toggle('done',i<n-1);
+  });
+}
+
+// ─────────────────────────────────────────────
+// MODE SELECTION
+// ─────────────────────────────────────────────
+const MODE_UPLOAD_INSTRUCTIONS={
+  first:`<div class="callout info"><span class="callout-icon">📋</span>
+    <div><strong>What to upload:</strong> Export your bank statement as CSV or Excel. Your file needs <strong>Date</strong>, <strong>Description</strong> (or Memo/Payee), and <strong>Amount</strong> columns. You can upload multiple files — each will get a source label in the merged output.</div></div>`,
+  apply:`<div class="callout info"><span class="callout-icon">📋</span>
+    <div><strong>Upload your latest statements.</strong> Your saved template rules will auto-categorize transactions. Unrecognized ones are flagged for review. You can upload <strong>multiple files at once</strong> — they'll be merged with a Source column.</div></div>`,
+  import:`<div class="callout warn"><span class="callout-icon">📌</span>
+    <div><strong>Upload a file you've already categorized.</strong> It needs a column with your existing categories — you'll select it in the next step. The category column can be named anything.</div></div>
+    <div class="callout tip"><span class="callout-icon">💡</span><div>Import mode processes one file at a time and does not merge files.</div></div>`
+};
+
+function pickMode(m,btn){
+  BKMODE=m;
+  const rules=GR();
+  document.getElementById('uploadTitle').textContent=m==='import'?'Upload Your Categorized File':'Upload Bank Statement(s)';
+  document.getElementById('uploadInstructions').innerHTML=MODE_UPLOAD_INSTRUCTIONS[m]||'';
+  document.getElementById('multiFileNote').classList.toggle('h',m==='import');
+  // import mode: skip template picker
+  if(m==='import'){
+    goStep(3);return;
+  }
+  // Show template picker
+  renderTplPicker();
+  goStep(2);
+}
+
+// ─────────────────────────────────────────────
+// TEMPLATE PICKER (step 2)
+// ─────────────────────────────────────────────
+function renderTplPicker(){
+  const tpls=GTpls();const actId=GTplId();
+  const list=document.getElementById('tplPickList');
+  list.innerHTML='';
+  tpls.forEach(t=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .15s;background:var(--surface2)';
+    if(t.id===actId){row.style.borderColor='var(--accent)';row.style.background='var(--accent-dim)';}
+    row.innerHTML=`
+      <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1rem">📋</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:.9rem">${t.name}</div>
+        <div style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">${t.rules.length} rule${t.rules.length!==1?'s':''}</div>
+      </div>
+      ${t.id===actId?'<span style="font-size:.7rem;font-family:var(--mono);color:var(--accent);background:var(--accent-dim);padding:.2rem .5rem;border-radius:20px">active</span>':''}`;
+    row.onclick=()=>{setActiveTpl(t.id);renderTplPicker();updateWsSub();};
+    list.appendChild(row);
+  });
+}
+
+// ─────────────────────────────────────────────
+// MULTI-FILE UPLOAD
+// ─────────────────────────────────────────────
+function handleFiles(e){
+  const files=Array.from(e.target.files);if(!files.length)return;
+  stagedFiles=files.map(f=>({file:f,label:f.name.replace(/\.[^.]+$/,''),rows:null,cols:{},amtFmt:'single'}));
+  renderStagedList();
+  document.getElementById('stagedFiles').classList.remove('h');
+  document.getElementById('uploadBackRow').classList.add('h');
+}
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{
+  e.preventDefault();dz.classList.remove('dragover');
+  const files=Array.from(e.dataTransfer.files).filter(f=>/\.(csv|xlsx|xls)$/i.test(f.name));
+  if(!files.length){showToast('Please drop CSV or Excel files.');return;}
+  document.getElementById('fileIn').value='';
+  stagedFiles=files.map(f=>({file:f,label:f.name.replace(/\.[^.]+$/,''),rows:null,cols:{},amtFmt:'single'}));
+  renderStagedList();
+  document.getElementById('stagedFiles').classList.remove('h');
+  document.getElementById('uploadBackRow').classList.add('h');
+});
+
+function renderStagedList(){
+  const list=document.getElementById('stagedList');
+  document.getElementById('stagedCount').textContent=stagedFiles.length;
+  list.innerHTML='';
+  stagedFiles.forEach((sf,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:.6rem;padding:.6rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px';
+    row.innerHTML=`
+      <span style="font-size:1.1rem">📄</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.78rem;color:var(--muted);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sf.file.name}</div>
+        <div style="display:flex;align-items:center;gap:.4rem;margin-top:.3rem">
+          <span style="font-size:.7rem;color:var(--muted)">Source label:</span>
+          <input class="sm-inp" style="width:200px;font-size:.78rem" value="${sf.label}"
+            oninput="stagedFiles[${i}].label=this.value.trim()||stagedFiles[${i}].file.name" placeholder="e.g. Chase Checking">
+        </div>
+      </div>
+      <button class="icon-btn del" onclick="removeStaged(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function removeStaged(i){
+  stagedFiles.splice(i,1);
+  if(!stagedFiles.length){
+    document.getElementById('stagedFiles').classList.add('h');
+    document.getElementById('uploadBackRow').classList.remove('h');
+    document.getElementById('fileIn').value='';
+  } else renderStagedList();
+}
+
+// ─────────────────────────────────────────────
+// PROCESS ALL FILES → sequential column mapping
+// ─────────────────────────────────────────────
+function processAllFiles(){
+  if(!stagedFiles.length){showToast('No files staged.');return;}
+  pendingMapIdx=0;
+  readNextFile();
+}
+
+function readNextFile(){
+  if(pendingMapIdx>=stagedFiles.length){
+    // all files read — check if formats differ
+    checkFormatConflict();
+    return;
+  }
+  showProc(`Reading file ${pendingMapIdx+1} of ${stagedFiles.length}…`);
+  const sf=stagedFiles[pendingMapIdx];
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      sf.rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      setTimeout(()=>showMapperForFile(pendingMapIdx),300);
+    }catch{showToast(`Could not read "${sf.file.name}"`);pendingMapIdx++;readNextFile();}
+  };
+  r.readAsArrayBuffer(sf.file);
+}
+
+function showMapperForFile(idx){
+  const sf=stagedFiles[idx];
+  const rows=sf.rows;
+  if(!rows||!rows.length){showToast(`No data in "${sf.file.name}"`);pendingMapIdx++;readNextFile();return;}
+
+  const allCols=Object.keys(rows[0]);
+
+  function dc(pats){for(const p of pats){const f=allCols.find(k=>new RegExp(p,'i').test(k));if(f)return f;}return '';}
+  const hasSingle=dc(['^amount','^amt','^sum','^total','^value','^net']);
+  const hasDebit =dc(['^debit$','charged','withdrawal$','paid.?out','^out$']);
+  const hasCredit=dc(['^credit$','^deposit$','paid.?in','money.?in']);
+  const hasWith  =dc(['withdraw']);
+  const hasDep   =dc(['^deposits?$','payments.?in']);
+  let detFmt='single';
+  if((hasDebit&&hasCredit)||(hasWith&&hasDep))detFmt=(hasDebit&&hasCredit)?'dc':'dw';
+
+  sf.cols={
+    date: dc(['^date','posting','trans.*date','trx.*date','value.*date']),
+    desc: dc(['^desc','memo','narr','detail','payee','name','reference','particulars','transaction','text']),
+    amount:hasSingle||dc(['^amount','amt','debit','credit','charge','payment']),
+    amtA: hasDebit||hasDep||'',
+    amtB: hasCredit||hasWith||'',
+    cat:  dc(['^cat','type','class','label','group','account']),
+  };
+  sf.amtFmt=detFmt;
+
+  // Build preview
+  const preview=rows.slice(0,3);
+  let ph=`<table><thead><tr>${allCols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  preview.forEach(row=>{ph+=`<tr>${allCols.map(c=>`<td>${String(row[c]||'').substring(0,30)}</td>`).join('')}</tr>`;});
+  ph+=`</tbody></table>`;
+  document.getElementById('colPreview').innerHTML=ph;
+
+  const opts=(sel)=>`<option value="">— Not in file —</option>`+allCols.map(c=>`<option value="${c}" ${sel===c?'selected':''}>${c}</option>`).join('');
+  document.getElementById('mapFields').innerHTML=`
+    <div class="field"><label>Date Column <span style="color:var(--expense)">*</span></label><select id="map_date">${opts(sf.cols.date)}</select></div>
+    <div class="field"><label>Description / Payee Column <span style="color:var(--expense)">*</span></label><select id="map_desc">${opts(sf.cols.desc)}</select></div>
+    <div class="field" id="singleAmtField"><label>Amount Column</label><select id="map_amount">${opts(sf.cols.amount)}</select></div>`;
+
+  const afmtDiv=document.getElementById('mapAmtFormat');afmtDiv.classList.remove('h');
+  ['afmt-single','afmt-dc','afmt-dw'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById(detFmt==='dc'?'afmt-dc':detFmt==='dw'?'afmt-dw':'afmt-single').classList.add('on');
+  sf.amtFmt=detFmt;updateAmtFormatUI(sf);
+
+  const aSel=document.getElementById('mapAmtA');const bSel=document.getElementById('mapAmtB');
+  aSel.innerHTML=opts(sf.cols.amtA);bSel.innerHTML=opts(sf.cols.amtB);
+
+  // import extra
+  if(BKMODE==='import'){document.getElementById('mapImportExtra').classList.remove('h');document.getElementById('mapCatCol').innerHTML=opts(sf.cols.cat);}
+  else document.getElementById('mapImportExtra').classList.add('h');
+
+  document.getElementById('mapFileIndicator').textContent=
+    `File ${idx+1} of ${stagedFiles.length}: ${sf.label||sf.file.name}`;
+
+  // Wire format buttons to this file
+  ['afmt-single','afmt-dc','afmt-dw'].forEach(id=>{
+    document.getElementById(id).onclick=()=>{
+      sf.amtFmt=id==='afmt-single'?'single':id==='afmt-dc'?'dc':'dw';
+      ['afmt-single','afmt-dc','afmt-dw'].forEach(x=>document.getElementById(x).classList.remove('on'));
+      document.getElementById(id).classList.add('on');
+      updateAmtFormatUI(sf);
+    };
+  });
+
+  goStep(4);
+}
+
+function pickAmtFmt(){}// no-op, handled per-file above
+
+function updateAmtFormatUI(sf){
+  const isSingle=(sf?.amtFmt||'single')==='single';
+  document.getElementById('singleAmtField').classList.toggle('h',!isSingle);
+  document.getElementById('dualColFields').classList.toggle('h',isSingle);
+  if(!isSingle){
+    const isDC=(sf?.amtFmt)==='dc';
+    document.getElementById('col2aLabel').textContent=isDC?'Credit Column (Money In)':'Deposits Column (Money In)';
+    document.getElementById('col2bLabel').textContent=isDC?'Debit Column (Money Out)':'Withdrawals Column (Money Out)';
+  }
+}
+
+function confirmMapping(){
+  const sf=stagedFiles[pendingMapIdx];
+  const dateC=document.getElementById('map_date').value;
+  const descC=document.getElementById('map_desc').value;
+  if(!dateC||!descC){showToast('Please map Date and Description columns.');return;}
+  if(sf.amtFmt==='single'&&!document.getElementById('map_amount').value){showToast('Please map the Amount column.');return;}
+  if(sf.amtFmt!=='single'&&(!document.getElementById('mapAmtA').value||!document.getElementById('mapAmtB').value)){showToast('Please map both amount columns.');return;}
+
+  sf.cols.date=dateC;sf.cols.desc=descC;
+  sf.cols.amount=document.getElementById('map_amount').value;
+  sf.cols.amtA=document.getElementById('mapAmtA').value;
+  sf.cols.amtB=document.getElementById('mapAmtB').value;
+  if(BKMODE==='import')sf.cols.cat=document.getElementById('mapCatCol').value;
+
+  pendingMapIdx++;
+  readNextFile();
+}
+
+// ─────────────────────────────────────────────
+// FORMAT CONFLICT CHECK
+// ─────────────────────────────────────────────
+function checkFormatConflict(){
+  const fmts=[...new Set(stagedFiles.map(sf=>sf.amtFmt))];
+  if(fmts.length<=1){
+    // all same format — proceed directly
+    mergeAndProcess();return;
+  }
+  // Show standardization modal
+  document.getElementById('conflictFileList').innerHTML=
+    stagedFiles.map(sf=>`<div style="font-size:.8rem;padding:.3rem 0;font-family:var(--mono);color:var(--text2)">${sf.label} → <span style="color:var(--accent)">${sf.amtFmt==='single'?'Single column':sf.amtFmt==='dc'?'Debit/Credit':'Deposit/Withdrawal'}</span></div>`).join('');
+  openM('mFormatConflict');
+}
+
+function resolveConflict(targetFmt){
+  stagedFiles.forEach(sf=>sf.amtFmt=targetFmt);
+  closeM('mFormatConflict');
+  mergeAndProcess();
+}
+
+// ─────────────────────────────────────────────
+// MERGE + PROCESS ALL FILES
+// ─────────────────────────────────────────────
+function showProc(msg){
+  ['pMode','pTplPick','pUpload','pMap','pReview','pExport'].forEach(v=>document.getElementById(v).classList.add('h'));
+  document.getElementById('pProc').classList.remove('h');
+  document.getElementById('procMsg').textContent=msg||'Processing…';
+}
+
+function parseAmtFromRow(row,sf){
+  function n(v){return parseFloat(String(v||'').replace(/[^0-9.\-]/g,''))||0;}
+  if(sf.amtFmt==='single') return n(row[sf.cols.amount]);
+  const mIn=Math.abs(n(row[sf.cols.amtA]));
+  const mOut=Math.abs(n(row[sf.cols.amtB]));
+  if(mIn>0)return mIn;if(mOut>0)return -mOut;return 0;
+}
+
+function origAmtFromRow(row,sf){
+  if(sf.amtFmt==='single')return {Amount:String(row[sf.cols.amount]||'')};
+  return {[sf.cols.amtA]:String(row[sf.cols.amtA]||''),[sf.cols.amtB]:String(row[sf.cols.amtB]||'')};
+}
+
+function mergeAndProcess(){
+  showProc('Merging & categorizing…');
+  const rules=GR();
+  function match(desc){return fuzzyMatch(desc,rules);}
+
+  if(BKMODE==='import'){
+    let learned=0;
+    stagedFiles.forEach(sf=>{
+      (sf.rows||[]).forEach(row=>{
+        const desc=String(row[sf.cols.desc]||'').trim(),cat=String(row[sf.cols.cat]||'').trim();
+        if(!desc||!cat)return;
+        const mk=desc.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2).slice(0,3).join(' ');
+        if(mk&&!rules.find(r=>r.marker===mk)){rules.push({marker:mk,category:cat});learned++;}
+      });
+    });
+    SR(rules);updateWsSub();showToast(`Learned ${learned} new rules!`);bkReset();return;
+  }
+
+  let idCounter=0;
+  TXS=[];
+  stagedFiles.forEach(sf=>{
+    (sf.rows||[]).forEach(row=>{
+      const desc=String(row[sf.cols.desc]||'').trim();if(!desc)return;
+      const amt=parseAmtFromRow(row,sf);
+      const origAmt=origAmtFromRow(row,sf);
+      const matched=match(desc);
+      TXS.push({id:idCounter++,source:sf.label,date:String(row[sf.cols.date]||'').trim(),description:desc,amount:amt,origAmt,origFmt:sf.amtFmt,category:matched||'',marker:'',status:matched?'auto':'new'});
+    });
+  });
+
+  setTimeout(()=>{renderTxTable();goStep(5);},400);
+}
+
+// ─────────────────────────────────────────────
+// TX TABLE
+// ─────────────────────────────────────────────
+function renderTxTable(){
+  const body=document.getElementById('txBody');
+  const isF=BKMODE==='first';
+  document.getElementById('mHead').classList.toggle('h',!isF);
+  body.innerHTML='';
+
+  // Build source filter tabs
+  const sources=[...new Set(TXS.map(t=>t.source))];
+  const stDiv=document.getElementById('sourceTabs');stDiv.innerHTML='';
+  if(sources.length>1){
+    sources.forEach(src=>{
+      const b=document.createElement('button');
+      b.className='ftab';b.textContent=src;b.style.cssText='font-size:.7rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      b.onclick=()=>{document.querySelectorAll('.ftab').forEach(x=>x.classList.remove('on'));b.classList.add('on');filterTxBySource(src);};
+      stDiv.appendChild(b);
+    });
+  }
+
+  TXS.forEach(tx=>{
+    const tr=document.createElement('tr');
+    if(tx.status==='new')tr.classList.add('nrow');
+    tr.dataset.status=tx.status;tr.dataset.id=tx.id;
+    tr.dataset.ct=tx.category.startsWith('Income')?'income':tx.category.startsWith('Expense')?'expense':'other';
+    tr.dataset.source=tx.source;
+    const ac=tx.amount>=0?'apos':'aneg';
+    const as=(tx.amount>=0?'+':'')+tx.amount.toFixed(2);
+    const badge=tx.status==='auto'?`<span class="badge ba">Auto</span>`:`<span class="badge bn">Review</span>`;
+    const mCell=isF?`<td><input class="sm-inp" style="width:110px" placeholder="keyword" value="${tx.marker}" onchange="setMark(${tx.id},this.value)"></td>`:'';
+    const srCell=(BKMODE==='apply'&&tx.status==='new')?`<div class="srr h" id="sr-${tx.id}">
+      <span class="srl">💾 Save rule?</span>
+      <input class="sm-inp" style="width:130px" id="sr-inp-${tx.id}" placeholder="keyword">
+      <button class="btn btn-p" style="padding:.22rem .5rem;font-size:.7rem" onclick="confirmSR(${tx.id})">Save</button>
+      <button class="btn btn-g" style="padding:.22rem .45rem;font-size:.7rem" onclick="document.getElementById('sr-${tx.id}').classList.add('h')">Skip</button>
+    </div>`:'';
+    tr.innerHTML=`
+      <td style="font-size:.72rem;font-family:var(--mono);color:var(--accent);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis" title="${tx.source}">${tx.source}</td>
+      <td style="font-family:var(--mono);font-size:.71rem;color:var(--muted);white-space:nowrap">${tx.date}</td>
+      <td style="max-width:200px;word-break:break-word;font-size:.81rem">${tx.description}</td>
+      <td class="${ac}" style="white-space:nowrap;font-size:.79rem">${as}</td>
+      <td>
+        <select class="cat-sel" data-id="${tx.id}" onchange="handleCat(${tx.id},this)">${buildCatOpts(tx.category)}</select>
+        <div class="ncr h" id="nc-${tx.id}">
+          <input class="sm-inp" style="width:140px" placeholder="New category" id="nc-inp-${tx.id}">
+          <button class="btn btn-p" style="padding:.22rem .5rem;font-size:.7rem" onclick="confirmNC(${tx.id})">Add</button>
+          <button class="btn btn-g" style="padding:.22rem .45rem;font-size:.7rem" onclick="document.getElementById('nc-${tx.id}').classList.add('h')">✕</button>
+        </div>
+        ${srCell}
+      </td>
+      ${mCell}
+      <td>${badge}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+function filterTxBySource(src){
+  document.querySelectorAll('#txBody tr').forEach(tr=>{tr.style.display=tr.dataset.source===src?'':'none';});
+}
+function filterTx(t,btn){
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  document.querySelectorAll('#txBody tr').forEach(tr=>{
+    if(t==='all')tr.style.display='';
+    else if(t==='new')tr.style.display=tr.dataset.status==='new'?'':'none';
+    else tr.style.display=tr.dataset.ct===t?'':'none';
+  });
+}
+function handleCat(id,sel){
+  const v=sel.value;
+  if(v==='__new__'){sel.value='';document.getElementById(`nc-${id}`).classList.remove('h');document.getElementById(`nc-inp-${id}`).focus();return;}
+  setCat(id,v);
+  const sr=document.getElementById(`sr-${id}`);
+  if(sr&&v&&v!=='Skip / Transfer'){
+    const tx=TXS.find(t=>t.id===id);
+    const inp=document.getElementById(`sr-inp-${id}`);
+    if(inp&&!inp.value&&tx)inp.value=tx.description.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2).slice(0,3).join(' ');
+    sr.classList.remove('h');
+  } else if(sr)sr.classList.add('h');
+}
+function confirmNC(id){
+  const inp=document.getElementById(`nc-inp-${id}`);const n=inp.value.trim();if(!n)return;
+  if(!DCAT.includes(n))DCAT.push(n);
+  setCat(id,n);
+  const sel=document.querySelector(`.cat-sel[data-id="${id}"]`);
+  if(sel){sel.innerHTML=buildCatOpts(n);sel.value=n;}
+  document.getElementById(`nc-${id}`).classList.add('h');inp.value='';showToast(`Category "${n}" added`);
+}
+function setCat(id,v){
+  const tx=TXS.find(t=>t.id===id);if(!tx)return;tx.category=v;
+  const row=document.querySelector(`tr[data-id="${id}"]`);
+  if(row)row.dataset.ct=v.startsWith('Income')?'income':v.startsWith('Expense')?'expense':'other';
+}
+function setMark(id,v){const tx=TXS.find(t=>t.id===id);if(tx)tx.marker=v.trim().toLowerCase();}
+function confirmSR(id){
+  const tx=TXS.find(t=>t.id===id);
+  const inp=document.getElementById(`sr-inp-${id}`);
+  const mk=(inp?.value||'').trim().toLowerCase();
+  if(!mk||!tx?.category){showToast('Enter a keyword first');return;}
+  const rules=GR();
+  if(!rules.find(r=>r.marker===mk)){rules.push({marker:mk,category:tx.category});SR(rules);updateWsSub();showToast(`Rule saved: "${mk}"`);}
+  else showToast('Rule already exists');
+  document.getElementById(`sr-${id}`).classList.add('h');
+}
+
+// ─────────────────────────────────────────────
+// EXPORT
+// ─────────────────────────────────────────────
+function pickFmt(fmt,btn){
+  exportFmt=fmt;
+  document.querySelectorAll('#fmtPicker .mode-card').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderPreview();
+}
+
+// ─────────────────────────────────────────────
+// EXPORT PREVIEW
+// ─────────────────────────────────────────────
+let previewFilter='all';
+
+function renderPreview(){
+  const rows=getExportRows();
+  if(!rows.length){
+    document.getElementById('prevBody').innerHTML=`<tr><td colspan="99" style="text-align:center;padding:2rem;color:var(--muted);font-size:.82rem">No categorized transactions to preview.</td></tr>`;
+    document.getElementById('prevCount').textContent='';
+    return;
+  }
+  const headers=Object.keys(rows[0]);
+  // Build header
+  document.getElementById('prevHead').innerHTML=
+    `<tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr>`;
+
+  const search=(document.getElementById('prevSearch')?.value||'').toLowerCase();
+
+  const filtered=rows.filter(r=>{
+    const type=(r.Type||'').toLowerCase();
+    if(previewFilter==='income'&&type!=='income')return false;
+    if(previewFilter==='expense'&&type!=='expense')return false;
+    if(search){
+      const vals=Object.values(r).join(' ').toLowerCase();
+      if(!vals.includes(search))return false;
+    }
+    return true;
+  });
+
+  const body=document.getElementById('prevBody');
+  body.innerHTML='';
+  filtered.forEach(r=>{
+    const isIncome=(r.Type||'').toLowerCase()==='income';
+    const isExpense=(r.Type||'').toLowerCase()==='expense';
+    const tr=document.createElement('tr');
+    if(isIncome)tr.style.background='var(--income-bg)';
+    else if(isExpense)tr.style.background='var(--expense-bg)';
+    tr.innerHTML=headers.map(h=>{
+      const v=String(r[h]??'');
+      // Colour amount cells
+      if(h==='Amount'){
+        const n=parseFloat(v);
+        const cls=n>=0?'apos':'aneg';
+        return `<td class="${cls}" style="white-space:nowrap">${v}</td>`;
+      }
+      if(h==='Source')return `<td style="font-family:var(--mono);font-size:.71rem;color:var(--accent);white-space:nowrap">${v}</td>`;
+      if(h==='Category')return `<td><span class="badge ${isIncome?'bi':isExpense?'be':''}" style="font-size:.68rem">${v}</span></td>`;
+      if(h==='Credit'&&v)return `<td class="apos" style="white-space:nowrap">${v}</td>`;
+      if(h==='Debit'&&v)return `<td class="aneg" style="white-space:nowrap">${v}</td>`;
+      return `<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem">${v}</td>`;
+    }).join('');
+    body.appendChild(tr);
+  });
+
+  document.getElementById('prevCount').textContent=
+    `${filtered.length} of ${rows.length} transaction${rows.length!==1?'s':''} shown  ·  ${rows.length} total in export`;
+}
+
+function filterPreview(f,btn){
+  previewFilter=f;
+  document.querySelectorAll('#prevFilterTabs .ftab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderPreview();
+}
+
+function goExport(){
+  if(BKMODE==='first'){
+    const rules=GR();
+    TXS.forEach(tx=>{if(tx.marker&&tx.category&&!rules.find(r=>r.marker===tx.marker))rules.push({marker:tx.marker,category:tx.category});});
+    SR(rules);updateWsSub();showToast(`Template updated — ${GR().length} rules saved`);
+  }
+  const txs=TXS.filter(t=>t.category&&t.category!=='Skip / Transfer');
+  const inc=txs.filter(t=>t.category.startsWith('Income')).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const exp=txs.filter(t=>t.category.startsWith('Expense')).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const net=inc-exp;
+
+  // Summary by source
+  const sources=[...new Set(txs.map(t=>t.source))];
+  let srcHtml='';
+  if(sources.length>1){
+    srcHtml=`<div class="card-title" style="margin-top:1.25rem">By Source</div>
+    <div style="overflow-x:auto"><table class="r-tbl" style="margin-bottom:0">
+      <thead><tr><th>Source</th><th style="text-align:right">Income</th><th style="text-align:right">Expenses</th><th style="text-align:right">Net</th></tr></thead>
+      <tbody>${sources.map(src=>{
+        const si=txs.filter(t=>t.source===src&&t.category.startsWith('Income')).reduce((s,t)=>s+Math.abs(t.amount),0);
+        const se=txs.filter(t=>t.source===src&&t.category.startsWith('Expense')).reduce((s,t)=>s+Math.abs(t.amount),0);
+        return `<tr><td style="font-family:var(--mono);font-size:.78rem;color:var(--accent)">${src}</td><td style="text-align:right;color:var(--income);font-family:var(--mono);font-size:.82rem">$${si.toLocaleString('en-US',{minimumFractionDigits:2})}</td><td style="text-align:right;color:var(--expense);font-family:var(--mono);font-size:.82rem">$${se.toLocaleString('en-US',{minimumFractionDigits:2})}</td><td style="text-align:right;font-family:var(--mono);font-size:.82rem;color:${(si-se)>=0?'var(--income)':'var(--expense)'}">$${(si-se).toLocaleString('en-US',{minimumFractionDigits:2})}</td></tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+  }
+
+  document.getElementById('sumGrid').innerHTML=`
+    <div class="sum-card"><div class="s-lbl">Total Income</div><div class="s-val" style="color:var(--income)">$${inc.toLocaleString('en-US',{minimumFractionDigits:2})}</div></div>
+    <div class="sum-card"><div class="s-lbl">Total Expenses</div><div class="s-val" style="color:var(--expense)">$${exp.toLocaleString('en-US',{minimumFractionDigits:2})}</div></div>
+    <div class="sum-card"><div class="s-lbl">Net</div><div class="s-val" style="color:${net>=0?'var(--income)':'var(--expense)'}">$${net.toLocaleString('en-US',{minimumFractionDigits:2})}</div></div>`;
+  document.getElementById('srcBreakdown').innerHTML=srcHtml;
+  exportFmt='single';
+  document.querySelectorAll('#fmtPicker .mode-card').forEach(b=>b.classList.remove('on'));
+  document.getElementById('fmt-single').classList.add('on');
+  previewFilter='all';
+  // Save to history for monthly report & AI
+  saveToHistory(txs);
+  goStep(6);
+  setTimeout(renderPreview,50);
+}
+
+function bkReset(){
+  TXS=[];BKMODE=null;stagedFiles=[];pendingMapIdx=0;exportFmt='single';
+  document.getElementById('fileIn').value='';
+  document.getElementById('modeNote').classList.add('h');
+  document.getElementById('stagedFiles').classList.add('h');
+  document.getElementById('uploadBackRow').classList.remove('h');
+  goStep(1);
+}
+
+function getExportRows(){
+  return TXS.filter(t=>t.category&&t.category!=='Skip / Transfer').map(t=>{
+    const type=t.category.startsWith('Income')?'Income':t.category.startsWith('Expense')?'Expense':'';
+    const base={Source:t.source,Date:t.date,Description:t.description,Category:t.category,Type:type};
+    if(exportFmt==='orig'){return {...base,...t.origAmt};}
+    else if(exportFmt==='debit'){const isI=t.amount>0;return {...base,Credit:isI?Math.abs(t.amount).toFixed(2):'',Debit:!isI?Math.abs(t.amount).toFixed(2):''  };}
+    else{return {...base,Amount:t.amount};}
+  });
+}
+function dlIIF(){
+  const rows = TXS.filter(t=>t.category&&t.category!=='Skip / Transfer');
+  if(!rows.length){showToast('No categorized transactions to export.');return;}
+
+  // IIF is tab-delimited, TRNS/SPL/ENDTRNS structure
+  // Each transaction: TRNS (bank account line) + SPL (category account line) + ENDTRNS
+  // Amounts on TRNS and SPL must sum to zero
+  const lines = [];
+
+  // File headers (column definitions)
+  lines.push(['!TRNS','TRNSTYPE','DATE','ACCNT','NAME','AMOUNT','MEMO','CLASS'].join('	'));
+  lines.push(['!SPL', 'TRNSTYPE','DATE','ACCNT','NAME','AMOUNT','MEMO'].join('	'));
+  lines.push(['!ENDTRNS'].join('	'));
+
+  rows.forEach(tx=>{
+    const isIncome = tx.category.startsWith('Income');
+    // Transaction type: DEPOSIT for income, CHECK for expense
+    const trnsType = isIncome ? 'DEPOSIT' : 'CHECK';
+    // Bank account — use source label or default
+    const bankAcct = tx.source && tx.source !== 'undefined' ? tx.source : 'Checking';
+    // Format date MM/DD/YYYY
+    let dateStr = tx.date;
+    // Normalize date to MM/DD/YYYY if possible
+    try{
+      const d = new Date(tx.date);
+      if(!isNaN(d)){
+        dateStr = (d.getMonth()+1).toString().padStart(2,'0')+'/'+
+                  d.getDate().toString().padStart(2,'0')+'/'+
+                  d.getFullYear();
+      }
+    }catch(e){}
+
+    const amt = parseFloat(tx.amount)||0;
+    // TRNS amount: positive for deposits, negative for checks (standard QB convention)
+    const trnsAmt = isIncome ? Math.abs(amt) : -Math.abs(amt);
+    // SPL amount is the opposite (double-entry: must sum to zero)
+    const splAmt  = -trnsAmt;
+
+    const memo = tx.description.replace(/	/g,' ').substring(0,100);
+    const name = tx.description.replace(/	/g,' ').substring(0,30);
+
+    lines.push([
+      'TRNS', trnsType, dateStr, bankAcct, name,
+      trnsAmt.toFixed(2), memo, ''
+    ].join('	'));
+
+    lines.push([
+      'SPL', trnsType, dateStr, tx.category, name,
+      splAmt.toFixed(2), memo
+    ].join('	'));
+
+    lines.push(['ENDTRNS'].join('	'));
+  });
+
+  const iifContent = lines.join('\r\n');
+  triggerDL('ledgerlite_export.iif',
+    'data:text/plain;base64,' + btoa(unescape(encodeURIComponent(iifContent))));
+  showToast('QuickBooks IIF downloaded!');
+}
+
+function triggerDL(fn,uri){const a=document.createElement('a');a.href=uri;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function dlCSV(){
+  const d=getExportRows();if(!d.length){showToast('No categorized transactions to export.');return;}
+  const hd=Object.keys(d[0]);
+  const rows=[hd.join(','),...d.map(r=>hd.map(h=>`"${String(r[h]??'').replace(/"/g,'""')}"`).join(','))];
+  triggerDL('ledgerlite_export.csv','data:text/csv;base64,'+btoa(unescape(encodeURIComponent(rows.join('\r\n')))));
+  showToast('CSV downloaded!');
+}
+function dlXLSX(){
+  const d=getExportRows();if(!d.length){showToast('No categorized transactions to export.');return;}
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d),'Transactions');
+  const txs=TXS.filter(t=>t.category&&t.category!=='Skip / Transfer');
+  const sources=[...new Set(txs.map(t=>t.source))];
+  // Summary sheet with source breakdown
+  const sumRows=[{Metric:'Total Income',Amount:txs.filter(t=>t.category.startsWith('Income')).reduce((s,t)=>s+Math.abs(t.amount),0).toFixed(2)},{Metric:'Total Expenses',Amount:txs.filter(t=>t.category.startsWith('Expense')).reduce((s,t)=>s+Math.abs(t.amount),0).toFixed(2)},{Metric:'Net',Amount:(txs.filter(t=>t.category.startsWith('Income')).reduce((s,t)=>s+Math.abs(t.amount),0)-txs.filter(t=>t.category.startsWith('Expense')).reduce((s,t)=>s+Math.abs(t.amount),0)).toFixed(2)}];
+  if(sources.length>1){
+    sumRows.push({Metric:'',Amount:''});
+    sumRows.push({Metric:'BY SOURCE',Amount:''});
+    sources.forEach(src=>{
+      const si=txs.filter(t=>t.source===src&&t.category.startsWith('Income')).reduce((s,t)=>s+Math.abs(t.amount),0);
+      const se=txs.filter(t=>t.source===src&&t.category.startsWith('Expense')).reduce((s,t)=>s+Math.abs(t.amount),0);
+      sumRows.push({Metric:`${src} — Income`,Amount:si.toFixed(2)});
+      sumRows.push({Metric:`${src} — Expenses`,Amount:se.toFixed(2)});
+      sumRows.push({Metric:`${src} — Net`,Amount:(si-se).toFixed(2)});
+    });
+  }
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(sumRows),'Summary');
+  triggerDL('ledgerlite_export.xlsx','data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,'+XLSX.write(wb,{bookType:'xlsx',type:'base64'}));
+  showToast('Excel downloaded!');
+}
+
+// ─────────────────────────────────────────────
+// TEMPLATE MANAGEMENT
+// ─────────────────────────────────────────────
+function renderTplTabs(){
+  const tpls=GTpls();const actId=GTplId();
+  const el=document.getElementById('tplTabs');el.innerHTML='';
+  tpls.forEach(t=>{
+    const btn=document.createElement('button');
+    btn.className='ftab'+(t.id===actId?' on':'');
+    btn.style.cssText='font-size:.78rem;display:flex;align-items:center;gap:.4rem';
+    btn.innerHTML=`${t.name} <span style="font-family:var(--mono);font-size:.65rem;opacity:.6">${t.rules.length}</span>`;
+    btn.onclick=()=>{setActiveTpl(t.id);renderTplTabs();renderRules();updateWsSub();};
+    btn.addEventListener('contextmenu',e=>{e.preventDefault();openRenTpl(t.id);});
+    el.appendChild(btn);
+  });
+  document.getElementById('activeTplName').textContent=GTpl().name;
+}
+function openNewTpl(){document.getElementById('ntName').value='';openM('mNewTpl');setTimeout(()=>document.getElementById('ntName').focus(),80);}
+function confirmNewTpl(){
+  const n=document.getElementById('ntName').value.trim();if(!n)return;
+  const b=GA();if(!b)return;
+  const id='t'+Date.now();b.templates.push({id,name:n,rules:[]});b.activeTplId=id;
+  saveBiz();closeM('mNewTpl');renderTplTabs();renderRules();updateWsSub();showToast(`Template "${n}" created`);
+}
+let rnTplId=null;
+function openRenTpl(id){rnTplId=id;const tpl=GTpls().find(t=>t.id===id);document.getElementById('rtName').value=tpl?.name||'';openM('mRenTpl');setTimeout(()=>document.getElementById('rtName').focus(),80);}
+function confirmRenTpl(){
+  const n=document.getElementById('rtName').value.trim();if(!n)return;
+  const tpl=GTpls().find(t=>t.id===rnTplId);if(tpl){tpl.name=n;saveBiz();}
+  closeM('mRenTpl');renderTplTabs();updateWsSub();showToast('Renamed');
+}
+function delActiveTpl(){
+  const tpls=GTpls();if(tpls.length<=1){showToast('Cannot delete the only template.');return;}
+  const tpl=GTpl();if(!confirm(`Delete template "${tpl.name}"?`))return;
+  const b=GA();b.templates=b.templates.filter(t=>t.id!==tpl.id);b.activeTplId=b.templates[0].id;
+  saveBiz();renderTplTabs();renderRules();updateWsSub();showToast(`"${tpl.name}" deleted`);
+}
+function renderRules(filter=''){
+  editRules=JSON.parse(JSON.stringify(GR()));
+  const filt=filter?editRules.filter(r=>r.marker.includes(filter.toLowerCase())||r.category.toLowerCase().includes(filter.toLowerCase())):editRules;
+  document.getElementById('rCt').textContent=`${editRules.length} rule${editRules.length!==1?'s':''}`;
+  document.getElementById('rEmpty').classList.toggle('h',editRules.length>0);
+  const body=document.getElementById('rBody');body.innerHTML='';
+  filt.forEach(rule=>{
+    const ri=editRules.indexOf(rule);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="ec"><input value="${rule.marker}" onchange="editRules[${ri}].marker=this.value.trim().toLowerCase()" placeholder="e.g. cvs pharmacy"></td>
+      <td class="ec"><select onchange="editRules[${ri}].category=this.value">${buildCatOpts(rule.category)}</select></td>
+      <td style="text-align:right"><button class="icon-btn del" onclick="delRule(${ri})">✕</button></td>`;
+    body.appendChild(tr);
+  });
+}
+function addRule(){editRules.push({marker:'',category:''});document.getElementById('rSearch').value='';renderRules();const ins=document.querySelectorAll('#rBody input');if(ins.length)ins[ins.length-1].focus();}
+function delRule(i){editRules.splice(i,1);renderRules(document.getElementById('rSearch').value);}
+function clearRules(){if(!confirm('Clear all rules?'))return;editRules=[];SR([]);renderRules();updateWsSub();showToast('Rules cleared');}
+function saveTpl(){const clean=editRules.filter(r=>r.marker&&r.category);SR(clean);renderRules();updateWsSub();showToast(`Saved — ${clean.length} rules`);}
+
+// ─────────────────────────────────────────────
+// CATEGORY DROPDOWN
+// ─────────────────────────────────────────────
+function buildCatOpts(sel){
+  const allRules=GTpls().flatMap(t=>t.rules||[]);
+  const bizCats=[...new Set(allRules.map(r=>r.category))].filter(Boolean);
+  let h=`<option value="">— Select category —</option>`;
+  if(bizCats.length){
+    h+=`<optgroup label="── This Business ──">`;
+    bizCats.forEach(c=>{h+=`<option value="${c}" ${sel===c?'selected':''}>${c}</option>`;});
+    h+=`</optgroup><optgroup label="── Defaults ──">`;
+    DCAT.filter(c=>!bizCats.includes(c)).forEach(c=>{h+=`<option value="${c}" ${sel===c?'selected':''}>${c}</option>`;});
+    h+=`</optgroup>`;
+  } else DCAT.forEach(c=>{h+=`<option value="${c}" ${sel===c?'selected':''}>${c}</option>`;});
+  h+=`<option value="__new__">＋ Create new…</option>`;
+  return h;
+}
+
+// ─────────────────────────────────────────────
+// FUZZY MATCHING
+// ─────────────────────────────────────────────
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function fuzzyMatch(desc, rules){
+  const d=desc.toLowerCase().replace(/[^a-z0-9\s]/g,' ');
+  const dTokens=new Set(d.split(/\s+/).filter(w=>w.length>1));
+  let best=null, bestScore=0;
+
+  for(const r of rules){
+    if(!r.marker) continue;
+    const m=r.marker.toLowerCase();
+
+    // 1. Exact substring match (highest priority)
+    if(d.includes(m)) return r.category;
+
+    // 2. Token overlap (each word in marker found in desc)
+    const mTokens=m.split(/\s+/).filter(w=>w.length>1);
+    if(mTokens.length){
+      const overlap=mTokens.filter(t=>dTokens.has(t)||[...dTokens].some(dt=>levenshtein(t,dt)<=1)).length;
+      const score=overlap/mTokens.length;
+      if(score>=0.75&&score>bestScore){bestScore=score;best=r.category;}
+    }
+
+    // 3. Levenshtein on whole marker vs desc substring
+    if(!best){
+      const mLen=m.length;
+      for(let i=0;i<=d.length-mLen+2;i++){
+        const slice=d.substring(i,i+mLen);
+        const dist=levenshtein(m,slice);
+        const score=1-dist/Math.max(m.length,1);
+        if(score>0.82&&score>bestScore){bestScore=score;best=r.category;}
+      }
+    }
+  }
+  return best;
+}
+
+// ─────────────────────────────────────────────
+// DATE RANGE FILTER
+// ─────────────────────────────────────────────
+let activeDateFrom=null, activeDateTo=null;
+
+function parseDate(str){
+  // Handle MM/DD/YYYY, YYYY-MM-DD, M/D/YY
+  if(!str)return null;
+  const iso=str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(iso)return new Date(str);
+  const us=str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(us){const y=us[3].length===2?'20'+us[3]:us[3];return new Date(`${y}-${us[1].padStart(2,'0')}-${us[2].padStart(2,'0')}`);}
+  return new Date(str);
+}
+
+function applyDateFilter(){
+  activeDateFrom=document.getElementById('dateFrom').value?new Date(document.getElementById('dateFrom').value):null;
+  activeDateTo=document.getElementById('dateTo').value?new Date(document.getElementById('dateTo').value):null;
+  if(activeDateTo) activeDateTo.setHours(23,59,59);
+  document.querySelectorAll('#txBody tr').forEach(tr=>{
+    const tx=TXS.find(t=>t.id===parseInt(tr.dataset.id));
+    if(!tx){tr.style.display='none';return;}
+    const d=parseDate(tx.date);
+    let show=true;
+    if(activeDateFrom&&d&&d<activeDateFrom)show=false;
+    if(activeDateTo&&d&&d>activeDateTo)show=false;
+    tr.style.display=show?'':'none';
+  });
+}
+function clearDateFilter(){
+  document.getElementById('dateFrom').value='';
+  document.getElementById('dateTo').value='';
+  activeDateFrom=null;activeDateTo=null;
+  document.querySelectorAll('#txBody tr').forEach(tr=>tr.style.display='');
+}
+
+// ─────────────────────────────────────────────
+// HISTORY (saved exports per business)
+// ─────────────────────────────────────────────
+function getHistory(){
+  try{return JSON.parse(localStorage.getItem(sk('history'))||'[]');}catch{return [];}
+}
+function saveToHistory(txs){
+  if(!txs.length)return;
+  const h=getHistory();
+  const batch={id:Date.now(),date:new Date().toISOString().split('T')[0],txs:txs.map(t=>({date:t.date,description:t.description,amount:t.amount,category:t.category,source:t.source}))};
+  h.push(batch);
+  // Keep last 24 batches
+  if(h.length>24)h.splice(0,h.length-24);
+  localStorage.setItem(sk('history'),JSON.stringify(h));
+}
+function getAllHistoryTxs(){
+  return getHistory().flatMap(b=>b.txs);
+}
+
+// ─────────────────────────────────────────────
+// MONTHLY REPORT
+// ─────────────────────────────────────────────
+function renderReport(){
+  const allTxs=getAllHistoryTxs();
+  const yearSel=document.getElementById('reportYear');
+  const empty=document.getElementById('reportEmpty');
+  const tbl=document.querySelector('.card:has(#reportTable)');
+
+  if(!allTxs.length){
+    empty.classList.remove('h');
+    if(tbl)tbl.classList.add('h');
+    document.getElementById('catBreakdown').innerHTML='';
+    return;
+  }
+  empty.classList.add('h');
+  if(tbl)tbl.classList.remove('h');
+
+  // Populate year selector
+  const years=[...new Set(allTxs.map(t=>{
+    const d=parseDate(t.date);return d?d.getFullYear():null;
+  }).filter(Boolean))].sort((a,b)=>b-a);
+  const selectedYear=parseInt(yearSel.value)||years[0];
+  yearSel.innerHTML=years.map(y=>`<option value="${y}" ${y===selectedYear?'selected':''}>${y}</option>`).join('');
+
+  const filtered=allTxs.filter(t=>{const d=parseDate(t.date);return d&&d.getFullYear()===selectedYear;});
+
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const rows=MONTHS.map((mon,i)=>{
+    const mTxs=filtered.filter(t=>{const d=parseDate(t.date);return d&&d.getMonth()===i;});
+    const inc=mTxs.filter(t=>t.category.startsWith('Income')).reduce((s,t)=>s+Math.abs(t.amount),0);
+    const exp=mTxs.filter(t=>t.category.startsWith('Expense')).reduce((s,t)=>s+Math.abs(t.amount),0);
+    // Top expense category
+    const expCats={};
+    mTxs.filter(t=>t.category.startsWith('Expense')).forEach(t=>{expCats[t.category]=(expCats[t.category]||0)+Math.abs(t.amount);});
+    const topCat=Object.entries(expCats).sort((a,b)=>b[1]-a[1])[0];
+    return{mon,inc,exp,net:inc-exp,topCat:topCat?topCat[0].replace('Expense: ',''):'—',txCount:mTxs.length};
+  });
+
+  const totInc=rows.reduce((s,r)=>s+r.inc,0);
+  const totExp=rows.reduce((s,r)=>s+r.exp,0);
+  const totNet=totInc-totExp;
+  const fmt=n=>'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2});
+  const clr=n=>n>=0?'var(--income)':'var(--expense)';
+
+  document.getElementById('reportBody').innerHTML=rows.map(r=>r.txCount===0?'':
+    `<tr>
+      <td style="font-weight:500">${r.mon}</td>
+      <td style="text-align:right;color:var(--income);font-family:var(--mono)">${fmt(r.inc)}</td>
+      <td style="text-align:right;color:var(--expense);font-family:var(--mono)">${fmt(r.exp)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:${clr(r.net)}">${r.net>=0?'+':'−'}${fmt(r.net)}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${r.topCat}</td>
+    </tr>`).join('');
+
+  document.getElementById('reportFoot').innerHTML=`<tr style="border-top:2px solid var(--border)">
+    <td style="font-weight:700">Total ${selectedYear}</td>
+    <td style="text-align:right;font-weight:700;color:var(--income);font-family:var(--mono)">${fmt(totInc)}</td>
+    <td style="text-align:right;font-weight:700;color:var(--expense);font-family:var(--mono)">${fmt(totExp)}</td>
+    <td style="text-align:right;font-weight:700;font-family:var(--mono);color:${clr(totNet)}">${totNet>=0?'+':'−'}${fmt(totNet)}</td>
+    <td></td>
+  </tr>`;
+
+  // Category breakdown
+  const cats={};
+  filtered.forEach(t=>{if(t.category&&t.category!=='Skip / Transfer')cats[t.category]=(cats[t.category]||0)+Math.abs(t.amount);});
+  const incCats=Object.entries(cats).filter(([k])=>k.startsWith('Income')).sort((a,b)=>b[1]-a[1]);
+  const expCats=Object.entries(cats).filter(([k])=>k.startsWith('Expense')).sort((a,b)=>b[1]-a[1]);
+  const mkCatList=(entries,color)=>{
+    if(!entries.length)return '<div style="color:var(--muted);font-size:.82rem">None</div>';
+    const total=entries.reduce((s,[,v])=>s+v,0);
+    return entries.map(([k,v],i)=>{
+      const pct=total>0?(v/total*100).toFixed(1):0;
+      const label=k.replace(/^(Income|Expense): /,'');
+      return `<div style="margin-bottom:.65rem">
+        <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.25rem">
+          <span style="font-weight:${i===0?'600':'400'}">${label}${i===0?' 🔝':''}</span>
+          <span style="font-family:var(--mono);color:${color}">${fmt(v)} <span style="color:var(--muted);font-size:.72rem">${pct}%</span></span>
+        </div>
+        <div style="height:5px;background:var(--border);border-radius:3px">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .4s"></div>
+        </div>
+      </div>`;
+    }).join('');
+  };
+  document.getElementById('catBreakdown').innerHTML=`
+    <div>
+      <div style="font-size:.72rem;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--income);margin-bottom:.85rem">Income Sources</div>
+      ${mkCatList(incCats,'var(--income)')}
+    </div>
+    <div>
+      <div style="font-size:.72rem;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--expense);margin-bottom:.85rem">Expense Categories</div>
+      ${mkCatList(expCats,'var(--expense)')}
+    </div>`;
+}
+
+function exportReportCSV(){
+  const allTxs=getAllHistoryTxs();
+  if(!allTxs.length){showToast('No history to export.');return;}
+  const yearSel=document.getElementById('reportYear');
+  const yr=parseInt(yearSel.value)||new Date().getFullYear();
+  const filtered=allTxs.filter(t=>{const d=parseDate(t.date);return d&&d.getFullYear()===yr;});
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const rows=[['Month','Income','Expenses','Net','Transactions']];
+  MONTHS.forEach((mon,i)=>{
+    const mTxs=filtered.filter(t=>{const d=parseDate(t.date);return d&&d.getMonth()===i;});
+    if(!mTxs.length)return;
+    const inc=mTxs.filter(t=>t.category.startsWith('Income')).reduce((s,t)=>s+Math.abs(t.amount),0);
+    const exp=mTxs.filter(t=>t.category.startsWith('Expense')).reduce((s,t)=>s+Math.abs(t.amount),0);
+    rows.push([mon,inc.toFixed(2),exp.toFixed(2),(inc-exp).toFixed(2),mTxs.length]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\r\n');
+  const a=document.createElement('a');a.href='data:text/csv;base64,'+btoa(unescape(encodeURIComponent(csv)));
+  a.download=`${GA()?.name||'business'}_report_${yr}.csv`;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  showToast('Report exported!');
+}
+
+// ─────────────────────────────────────────────
+// AI INSIGHTS
+// ─────────────────────────────────────────────
+function buildAIContext(focus){
+  const allTxs=getAllHistoryTxs();
+  if(!allTxs.length)return null;
+  const bizName=GA()?.name||'this business';
+
+  // Aggregate by month
+  const byMonth={};
+  allTxs.forEach(t=>{
+    const d=parseDate(t.date);if(!d)return;
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(!byMonth[key])byMonth[key]={income:0,expense:0,cats:{}};
+    if(t.category.startsWith('Income'))byMonth[key].income+=Math.abs(t.amount);
+    else if(t.category.startsWith('Expense')){byMonth[key].expense+=Math.abs(t.amount);byMonth[key].cats[t.category]=(byMonth[key].cats[t.category]||0)+Math.abs(t.amount);}
+  });
+
+  // Category totals
+  const catTotals={};
+  allTxs.forEach(t=>{if(t.category&&t.category!=='Skip / Transfer')catTotals[t.category]=(catTotals[t.category]||0)+Math.abs(t.amount);});
+  const topCats=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  const totalInc=allTxs.filter(t=>t.category.startsWith('Income')).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const totalExp=allTxs.filter(t=>t.category.startsWith('Expense')).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const months=Object.keys(byMonth).sort();
+
+  const focusMap={
+    overview:`Provide a comprehensive business health overview covering: 1) overall financial performance, 2) income vs expense ratio, 3) monthly trends, 4) top categories, 5) key strengths and concerns, 6) three actionable recommendations.`,
+    expenses:`Deep dive into expense patterns: 1) which categories consume the most, 2) month-over-month expense trend, 3) any unusual spikes, 4) expense-to-income ratio by category, 5) where costs could potentially be reduced.`,
+    income:`Analyze income performance: 1) revenue trends over time, 2) best and worst months, 3) income consistency and volatility, 4) income sources if categorized, 5) recommendations to stabilize or grow revenue.`,
+    efficiency:`Flag efficiency issues and anomalies: 1) months where expenses spiked unusually, 2) categories that seem disproportionately high, 3) income dips worth investigating, 4) any patterns that suggest overspending, 5) top three efficiency improvements to consider.`,
+    custom:document.getElementById('aiCustomQ').value||'Give a general financial summary.'
+  };
+
+  return {bizName,months,byMonth,topCats,totalInc,totalExp,txCount:allTxs.length,focus:focusMap[focus]||focusMap.overview};
+}
+
+async function runAI(focus){
+  const ctx=buildAIContext(focus);
+  if(!ctx){
+    document.getElementById('aiNoData').classList.remove('h');
+    return;
+  }
+  document.getElementById('aiNoData').classList.add('h');
+  document.getElementById('aiPromptCard').classList.add('h');
+  document.getElementById('aiResult').classList.add('h');
+  document.getElementById('aiLoading').classList.remove('h');
+  document.getElementById('aiLoadMsg').textContent='Analyzing your business data…';
+
+  const prompt=`You are a financial analyst reviewing data for a business called "${ctx.bizName}".
+
+FINANCIAL SUMMARY:
+- Total transactions analyzed: ${ctx.txCount}
+- Date range: ${ctx.months[0]||'N/A'} to ${ctx.months[ctx.months.length-1]||'N/A'}
+- Total Income: $${ctx.totalInc.toFixed(2)}
+- Total Expenses: $${ctx.totalExp.toFixed(2)}
+- Net: $${(ctx.totalInc-ctx.totalExp).toFixed(2)}
+- Expense-to-Income Ratio: ${ctx.totalInc>0?(ctx.totalExp/ctx.totalInc*100).toFixed(1):'N/A'}%
+
+MONTHLY DATA:
+${Object.entries(ctx.byMonth).sort().map(([m,v])=>`${m}: Income $${v.income.toFixed(0)}, Expenses $${v.expense.toFixed(0)}, Net $${(v.income-v.expense).toFixed(0)}`).join('\n')}
+
+TOP CATEGORIES (by total spend/revenue):
+${ctx.topCats.map(([k,v])=>`${k}: $${v.toFixed(2)}`).join('\n')}
+
+ANALYSIS REQUEST: ${ctx.focus}
+
+Respond in plain text (no markdown, no bullet symbols). Use numbered points where listing items. Be specific with numbers from the data. Be direct and actionable. Keep response under 500 words.`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'No response received.';
+    document.getElementById('aiResultContent').textContent=text;
+    document.getElementById('aiLoading').classList.add('h');
+    document.getElementById('aiResult').classList.remove('h');
+  }catch(e){
+    document.getElementById('aiLoadMsg').textContent='Error: '+e.message;
+    setTimeout(()=>{document.getElementById('aiLoading').classList.add('h');document.getElementById('aiPromptCard').classList.remove('h');},3000);
+  }
+}
+
+// ─────────────────────────────────────────────
+// BACKUP & RESTORE
+// ─────────────────────────────────────────────
+function backupData(){
+  if(!CU){showToast('Sign in first.');return;}
+  const payload={
+    version:2,
+    exportedAt:new Date().toISOString(),
+    user:CU,
+    businesses:BIZ,
+    history:getHistory()
+  };
+  const json=JSON.stringify(payload,null,2);
+  const a=document.createElement('a');
+  a.href='data:application/json;base64,'+btoa(unescape(encodeURIComponent(json)));
+  a.download=`ledgerlite_backup_${CU}_${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  showToast('Backup downloaded!');
+}
+
+function restoreData(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const payload=JSON.parse(ev.target.result);
+      if(!payload.businesses){showToast('Invalid backup file.');return;}
+      if(!confirm(`Restore backup from ${payload.exportedAt?.split('T')[0]||'unknown date'}? This will merge with your current data (existing businesses with the same name will be updated).`))return;
+      // Merge: add businesses not already present by name
+      payload.businesses.forEach(b=>{
+        const existing=BIZ.find(x=>x.name===b.name);
+        if(existing){
+          // Merge templates
+          (b.templates||[]).forEach(t=>{
+            if(!existing.templates.find(et=>et.name===t.name))existing.templates.push(t);
+          });
+        } else BIZ.push(b);
+      });
+      // Merge history
+      if(payload.history){
+        const existing=getHistory();
+        const existingIds=new Set(existing.map(h=>h.id));
+        payload.history.filter(h=>!existingIds.has(h.id)).forEach(h=>{existing.push(h);});
+        localStorage.setItem(sk('history'),JSON.stringify(existing));
+      }
+      saveBiz();renderGrid();showToast('Backup restored!');
+    }catch(err){showToast('Could not read backup: '+err.message);}
+  };
+  r.readAsText(file);
+  e.target.value='';
+}
+
+
+// ─────────────────────────────────────────────
+// MODALS & TOAST
+// ─────────────────────────────────────────────
+function openM(id){document.getElementById(id).classList.add('on');}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ─────────────────────────────────────────────
+// BACKUP REMINDER SYSTEM
+// ─────────────────────────────────────────────
+const BACKUP_KEY='ll_last_backup_prompt';
+const BACKUP_INTERVAL_MS=3*24*60*60*1000; // 3 days
+
+function checkBackupReminder(){
+  if(!CU)return;
+  // Don't show if no data worth backing up
+  if(!BIZ.length)return;
+  const last=parseInt(localStorage.getItem(BACKUP_KEY+CU)||'0');
+  const now=Date.now();
+  if(now-last>BACKUP_INTERVAL_MS){
+    document.getElementById('backupBanner').classList.remove('h');
+  }
+}
+
+function dismissBackupBanner(){
+  document.getElementById('backupBanner').classList.add('h');
+  localStorage.setItem(BACKUP_KEY+CU, Date.now().toString());
+}
+
+// Warn before closing/navigating away if signed in and has data
+window.addEventListener('beforeunload',e=>{
+  if(!CU||!BIZ.length)return;
+  // Check if they've backed up recently (within 24 hours — don't nag too much)
+  const last=parseInt(localStorage.getItem(BACKUP_KEY+CU)||'0');
+  const hoursSinceBackup=(Date.now()-last)/(1000*60*60);
+  if(hoursSinceBackup>24){
+    e.preventDefault();
+    // Modern browsers show their own message text — we can't customize it
+    // but setting returnValue triggers the dialog
+    e.returnValue='Back up your data before leaving — your templates and history are stored in this browser only.';
+    return e.returnValue;
+  }
+});
+
+</script>
+
+<!-- Format Conflict Modal -->
+<div class="overlay" id="mFormatConflict">
+  <div class="modal">
+    <h3>Files Have Different Formats</h3>
+    <div class="callout warn" style="margin-bottom:1rem"><span class="callout-icon">⚠️</span>
+      <div>Your uploaded files use different amount formats. Choose a single format to standardize all files to before merging.</div>
+    </div>
+    <div id="conflictFileList" style="margin-bottom:1.25rem"></div>
+    <div class="field"><label>Standardize All Files To</label></div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <button class="mode-card" onclick="resolveConflict('single')" style="padding:.9rem;text-align:left">
+        <div style="font-weight:600;font-size:.85rem;margin-bottom:.2rem">🔢 Single Amount Column</div>
+        <div style="font-size:.75rem;color:var(--muted)">Positive = income, negative = expense. Universal format.</div>
+      </button>
+      <button class="mode-card" onclick="resolveConflict('dc')" style="padding:.9rem;text-align:left">
+        <div style="font-weight:600;font-size:.85rem;margin-bottom:.2rem">↕️ Debit / Credit Columns</div>
+        <div style="font-size:.75rem;color:var(--muted)">Two columns — Credit (in) and Debit (out).</div>
+      </button>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="closeM('mFormatConflict')">Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LedgerLite — Simple Bookkeeping for Every Business</title>
+<meta name="description" content="Upload bank statements, auto-categorize transactions, and export to QuickBooks or Excel. Free, private, no subscription.">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0e1f3d;
+  --navy2:#1a3a6b;
+  --blue:#1a5fd4;
+  --blue-light:#4a87f5;
+  --sky:#e8f0fd;
+  --white:#ffffff;
+  --off:#f7f9fc;
+  --text:#0e1f3d;
+  --muted:#5a7299;
+  --border:#d0dcea;
+  --income:#0a7c4e;
+  --expense:#c0392b;
+  --gold:#d97706;
+  --serif:'Instrument Serif',serif;
+  --sans:'Plus Jakarta Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--text);background:var(--white);line-height:1.6;overflow-x:hidden}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(14,31,61,.96);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 2.5rem;
+}
+.nav-logo{font-family:var(--sans);font-size:1.1rem;font-weight:700;color:white;letter-spacing:.01em}
+.nav-logo span{color:#4a87f5}
+.nav-links{display:flex;align-items:center;gap:2rem}
+.nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.88rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:white}
+.nav-cta{background:var(--blue);color:white;padding:.45rem 1.1rem;border-radius:8px;font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s}
+.nav-cta:hover{background:var(--blue-light);transform:translateY(-1px)}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  background:linear-gradient(160deg,var(--navy) 0%,var(--navy2) 55%,#1e4a8a 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:6rem 2rem 4rem;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 40%,rgba(74,135,245,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 40% at 20% 70%,rgba(26,95,212,.15) 0%,transparent 55%);
+}
+/* Subtle grid lines */
+.hero::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.hero-inner{position:relative;z-index:1;text-align:center;max-width:860px;margin:0 auto}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(74,135,245,.15);border:1px solid rgba(74,135,245,.3);
+  color:#7fb3f8;padding:.35rem .9rem;border-radius:20px;
+  font-size:.78rem;font-family:var(--mono);letter-spacing:.05em;
+  margin-bottom:1.75rem;
+  animation:fadeUp .6s ease both;
+}
+.hero h1{
+  font-family:var(--serif);font-size:clamp(2.4rem,6vw,4.2rem);
+  color:white;line-height:1.1;font-weight:400;
+  margin-bottom:1.25rem;letter-spacing:-.01em;
+  animation:fadeUp .6s .1s ease both;
+}
+.hero h1 em{font-style:italic;color:#7fb3f8}
+.hero p{
+  font-size:clamp(.95rem,2vw,1.15rem);color:rgba(255,255,255,.72);
+  max-width:580px;margin:0 auto 2.25rem;line-height:1.65;
+  animation:fadeUp .6s .2s ease both;
+}
+.hero-btns{
+  display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;
+  animation:fadeUp .6s .3s ease both;
+}
+.btn-hero-primary{
+  background:var(--blue);color:white;
+  padding:.8rem 2rem;border-radius:10px;
+  font-size:.95rem;font-weight:600;text-decoration:none;
+  transition:all .22s;display:inline-flex;align-items:center;gap:.5rem;
+  box-shadow:0 4px 20px rgba(26,95,212,.4);
+}
+.btn-hero-primary:hover{background:var(--blue-light);transform:translateY(-2px);box-shadow:0 8px 28px rgba(26,95,212,.5)}
+.btn-hero-secondary{
+  background:rgba(255,255,255,.1);color:white;
+  padding:.8rem 2rem;border-radius:10px;
+  font-size:.95rem;font-weight:500;text-decoration:none;
+  border:1px solid rgba(255,255,255,.2);transition:all .22s;
+  display:inline-flex;align-items:center;gap:.5rem;
+}
+.btn-hero-secondary:hover{background:rgba(255,255,255,.18);transform:translateY(-2px)}
+.hero-note{
+  margin-top:1.5rem;font-size:.78rem;color:rgba(255,255,255,.4);
+  font-family:var(--mono);letter-spacing:.02em;
+  animation:fadeUp .6s .4s ease both;
+}
+
+/* App preview mockup */
+.hero-mockup{
+  margin-top:4rem;position:relative;z-index:1;
+  animation:fadeUp .7s .5s ease both;
+}
+.mockup-frame{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;padding:1px;overflow:hidden;
+  box-shadow:0 32px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);
+  max-width:820px;margin:0 auto;
+}
+.mockup-bar{
+  background:rgba(26,58,107,.9);height:36px;
+  display:flex;align-items:center;padding:0 1rem;gap:.5rem;
+}
+.mockup-dot{width:10px;height:10px;border-radius:50%}
+.mockup-body{
+  background:#f0f4f9;padding:1.5rem;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;
+}
+.mockup-card{background:white;border-radius:8px;padding:1rem;border:1px solid #d0dcea}
+.mc-label{font-size:.6rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:#6b82a8;margin-bottom:.4rem}
+.mc-val{font-size:1.2rem;font-family:var(--mono);font-weight:600}
+.mc-green{color:#0a7c4e}.mc-red{color:#c0392b}.mc-blue{color:#1a5fd4}
+.mockup-table{background:white;border-radius:8px;border:1px solid #d0dcea;overflow:hidden;margin-top:.75rem;grid-column:1/-1}
+.mt-row{display:flex;align-items:center;padding:.5rem .85rem;border-bottom:1px solid #f0f4f9;font-size:.72rem;gap:.75rem}
+.mt-row:last-child{border-bottom:none}
+.mt-src{font-family:var(--mono);color:#1a5fd4;font-size:.65rem;min-width:80px}
+.mt-desc{flex:1;color:#3d5478;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt-amt{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.mt-cat{font-size:.63rem;padding:.12rem .4rem;border-radius:4px;white-space:nowrap}
+.cat-inc{background:#e8f7f1;color:#0a7c4e}
+.cat-exp{background:#fdf0ee;color:#c0392b}
+.badge-auto{background:#e8f0fd;color:#1a5fd4;font-size:.62rem;padding:.1rem .38rem;border-radius:4px;font-family:var(--mono)}
+
+/* ── SECTIONS ── */
+section{padding:6rem 2rem}
+.container{max-width:1060px;margin:0 auto}
+.section-eyebrow{font-size:.72rem;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin-bottom:.75rem}
+.section-title{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.8rem);line-height:1.15;margin-bottom:1rem;font-weight:400}
+.section-sub{font-size:1rem;color:var(--muted);max-width:520px;line-height:1.65}
+
+/* ── HOW IT WORKS ── */
+#how{background:var(--off)}
+.steps-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem;margin-top:3.5rem}
+.step-item{position:relative}
+.step-num{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--navy);color:white;
+  font-family:var(--mono);font-size:.8rem;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:1rem;
+}
+.step-title{font-weight:700;font-size:.95rem;margin-bottom:.4rem}
+.step-desc{font-size:.84rem;color:var(--muted);line-height:1.6}
+.step-connector{
+  position:absolute;top:20px;left:40px;right:-1rem;
+  height:1px;background:linear-gradient(90deg,var(--border),transparent);
+}
+.step-item:last-child .step-connector{display:none}
+
+/* ── FEATURES ── */
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:3.5rem}
+@media(max-width:680px){.features-grid{grid-template-columns:1fr}}
+.feat-card{
+  padding:1.75rem;border-radius:14px;
+  border:1px solid var(--border);background:var(--white);
+  transition:all .2s;
+}
+.feat-card:hover{border-color:var(--blue);box-shadow:0 8px 28px rgba(26,95,212,.08);transform:translateY(-2px)}
+.feat-icon{font-size:1.6rem;margin-bottom:.85rem}
+.feat-title{font-weight:700;font-size:.97rem;margin-bottom:.4rem}
+.feat-desc{font-size:.84rem;color:var(--muted);line-height:1.65}
+
+/* ── STORAGE EXPLAINER ── */
+#storage{background:var(--navy)}
+.storage-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-top:3rem}
+@media(max-width:680px){.storage-grid{grid-template-columns:1fr}}
+.storage-card{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:1.75rem;
+}
+.storage-card h3{color:white;font-weight:700;font-size:1rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.storage-card p{font-size:.84rem;color:rgba(255,255,255,.6);line-height:1.65}
+.storage-card .tag{
+  display:inline-block;font-size:.68rem;font-family:var(--mono);
+  padding:.2rem .55rem;border-radius:4px;margin-bottom:.75rem;
+}
+.tag-web{background:rgba(74,135,245,.2);color:#7fb3f8}
+.tag-desktop{background:rgba(13,214,140,.15);color:#3dd68c}
+.storage-note{
+  margin-top:2rem;padding:1.25rem 1.5rem;
+  background:rgba(217,119,6,.1);border:1px solid rgba(217,119,6,.25);
+  border-radius:10px;font-size:.84rem;color:rgba(255,255,255,.7);line-height:1.6;
+}
+.storage-note strong{color:#f6a726}
+
+/* ── CTA ── */
+#cta{
+  background:linear-gradient(135deg,var(--blue) 0%,#1e4a8a 100%);
+  text-align:center;padding:7rem 2rem;
+}
+#cta h2{font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);color:white;margin-bottom:1rem;font-weight:400}
+#cta p{color:rgba(255,255,255,.75);font-size:1rem;margin-bottom:2.5rem;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.65}
+.cta-btns{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap}
+.btn-cta-white{
+  background:white;color:var(--navy);
+  padding:.8rem 2rem;border-radius:10px;
+  font-size:.92rem;font-weight:700;text-decoration:none;
+  transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;
+}
+.btn-cta-white:hover{background:#f0f4fd;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.btn-cta-outline{
+  background:transparent;color:white;
+  padding:.8rem 2rem;border-radius:10px;
+  font-size:.92rem;font-weight:600;text-decoration:none;
+  border:1.5px solid rgba(255,255,255,.4);transition:all .2s;
+  display:inline-flex;align-items:center;gap:.5rem;
+}
+.btn-cta-outline:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--navy);border-top:1px solid rgba(255,255,255,.06);
+  padding:2.5rem;text-align:center;
+  font-size:.8rem;color:rgba(255,255,255,.35);
+  font-family:var(--mono);
+}
+footer a{color:rgba(255,255,255,.5);text-decoration:none}
+footer a:hover{color:white}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  nav{padding:0 1.25rem}
+  .nav-links{display:none}
+  section{padding:4rem 1.25rem}
+  .mockup-body{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Ledger<span>Lite</span></div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#storage">Data & Privacy</a>
+    <a href="app.html" class="nav-cta">Launch App →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">✦ Free · No subscription · No cloud required</div>
+    <h1>Bookkeeping that<br><em>actually saves you time</em></h1>
+    <p>Upload your bank statements, auto-categorize every transaction, and export clean reports to Excel or QuickBooks — in minutes, not hours.</p>
+    <div class="hero-btns">
+      <a href="app.html" class="btn-hero-primary">🚀 Launch in Browser</a>
+      <a href="https://github.com/YOUR_USERNAME/ledgerlite/releases" class="btn-hero-secondary" target="_blank">⬇ Download Desktop App</a>
+    </div>
+    <div class="hero-note">Works in any browser · Data stays on your device · No account required to try</div>
+
+    <!-- Mockup -->
+    <div class="hero-mockup">
+      <div class="mockup-frame">
+        <div class="mockup-bar">
+          <div class="mockup-dot" style="background:#ff5f57"></div>
+          <div class="mockup-dot" style="background:#febc2e"></div>
+          <div class="mockup-dot" style="background:#28c840"></div>
+          <span style="font-size:.72rem;color:rgba(255,255,255,.4);font-family:var(--mono);margin-left:.75rem">LedgerLite — Riverside Café</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-card">
+            <div class="mc-label">Total Income</div>
+            <div class="mc-val mc-green">$24,150.00</div>
+          </div>
+          <div class="mockup-card">
+            <div class="mc-label">Total Expenses</div>
+            <div class="mc-val mc-red">$18,430.00</div>
+          </div>
+          <div class="mockup-card">
+            <div class="mc-label">Net</div>
+            <div class="mc-val mc-blue">+$5,720.00</div>
+          </div>
+          <div class="mockup-table">
+            <div class="mt-row" style="background:#f7f9fc;font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:#6b82a8">
+              <span class="mt-src">Source</span><span class="mt-desc">Description</span>
+              <span style="width:80px;text-align:right">Amount</span>
+              <span style="width:120px;text-align:right">Category</span>
+              <span style="width:45px;text-align:right">Status</span>
+            </div>
+            <div class="mt-row">
+              <span class="mt-src">Checking</span>
+              <span class="mt-desc">SYSCO FOOD SERVICES</span>
+              <span class="mt-amt mc-red" style="width:80px;text-align:right">−$2,800.00</span>
+              <span class="mt-cat cat-exp" style="width:120px;text-align:right">Inventory</span>
+              <span class="badge-auto" style="width:45px;text-align:right">Auto</span>
+            </div>
+            <div class="mt-row">
+              <span class="mt-src">AmEx</span>
+              <span class="mt-desc">MONTHLY RENT PAYMENT</span>
+              <span class="mt-amt mc-red" style="width:80px;text-align:right">−$2,800.00</span>
+              <span class="mt-cat cat-exp" style="width:120px;text-align:right">Rent / Lease</span>
+              <span class="badge-auto" style="width:45px;text-align:right">Auto</span>
+            </div>
+            <div class="mt-row">
+              <span class="mt-src">Checking</span>
+              <span class="mt-desc">DAILY SALES DEPOSIT</span>
+              <span class="mt-amt mc-green" style="width:80px;text-align:right">+$3,850.00</span>
+              <span class="mt-cat cat-inc" style="width:120px;text-align:right">Sales Revenue</span>
+              <span class="badge-auto" style="width:45px;text-align:right">Auto</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">How it works</div>
+      <div class="section-title">From statement to report<br>in six steps</div>
+      <div class="section-sub">No accounting degree required. LedgerLite guides you through every step.</div>
+    </div>
+    <div class="steps-row">
+      <div class="step-item reveal" style="transition-delay:.05s">
+        <div class="step-connector"></div>
+        <div class="step-num">01</div>
+        <div class="step-title">Choose a mode</div>
+        <div class="step-desc">First-time setup, apply saved rules, or import an existing categorized file.</div>
+      </div>
+      <div class="step-item reveal" style="transition-delay:.1s">
+        <div class="step-connector"></div>
+        <div class="step-num">02</div>
+        <div class="step-title">Select template</div>
+        <div class="step-desc">Pick the rule set for this upload — Chase Checking, AmEx, Payroll, or any account.</div>
+      </div>
+      <div class="step-item reveal" style="transition-delay:.15s">
+        <div class="step-connector"></div>
+        <div class="step-num">03</div>
+        <div class="step-title">Upload files</div>
+        <div class="step-desc">Drop one or multiple CSV/Excel files. Each gets a source label in the merged output.</div>
+      </div>
+      <div class="step-item reveal" style="transition-delay:.2s">
+        <div class="step-connector"></div>
+        <div class="step-num">04</div>
+        <div class="step-title">Map columns</div>
+        <div class="step-desc">LedgerLite auto-detects Date, Description, and Amount — you verify and confirm.</div>
+      </div>
+      <div class="step-item reveal" style="transition-delay:.25s">
+        <div class="step-connector"></div>
+        <div class="step-num">05</div>
+        <div class="step-title">Review & categorize</div>
+        <div class="step-desc">Auto-matched rows are ready. Unrecognized ones are flagged for a quick manual pick.</div>
+      </div>
+      <div class="step-item reveal" style="transition-delay:.3s">
+        <div class="step-num">06</div>
+        <div class="step-title">Export & analyze</div>
+        <div class="step-desc">Download CSV, Excel, or QuickBooks IIF. View monthly reports and AI insights.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">Features</div>
+      <div class="section-title">Everything a small business<br>actually needs</div>
+      <div class="section-sub">No bloat, no upsells. Just the tools that matter for managing your books.</div>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card reveal" style="transition-delay:.05s">
+        <div class="feat-icon">🧠</div>
+        <div class="feat-title">Smart Rule Templates</div>
+        <div class="feat-desc">Save keyword rules per account. Fuzzy matching means "BOFA" and "Bank of America" both map to the right category. Rules improve with every upload.</div>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:.1s">
+        <div class="feat-icon">📂</div>
+        <div class="feat-title">Multi-File Merge</div>
+        <div class="feat-desc">Upload checking, credit card, and savings statements at once. Merged into a single output with a Source column so you know exactly where each transaction came from.</div>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:.15s">
+        <div class="feat-icon">🏦</div>
+        <div class="feat-title">Any Bank Format</div>
+        <div class="feat-desc">Works with single-column Amount, Debit/Credit columns, or Deposit/Withdrawal columns. LedgerLite auto-detects the format and standardizes everything.</div>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:.2s">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Monthly Reports</div>
+        <div class="feat-desc">Month-by-month income, expenses, and net with category breakdowns. See which expense categories are growing and which months are strongest.</div>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:.25s">
+        <div class="feat-icon">🤖</div>
+        <div class="feat-title">AI Business Insights</div>
+        <div class="feat-desc">Ask Claude to analyze your financial history. Get plain-language observations: spending anomalies, income trends, efficiency flags, and actionable recommendations.</div>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:.3s">
+        <div class="feat-icon">⬇️</div>
+        <div class="feat-title">Three Export Formats</div>
+        <div class="feat-desc">Download as CSV (Google Sheets), Excel with a Summary tab, or QuickBooks IIF for direct import into QuickBooks Desktop. Pick your output format before downloading.</div>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:.35s">
+        <div class="feat-icon">🏢</div>
+        <div class="feat-title">Multiple Businesses</div>
+        <div class="feat-desc">Manage a pharmacy, a restaurant, and a rental property from one account. Each business has its own templates, history, and reports — completely separate.</div>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:.4s">
+        <div class="feat-icon">🔒</div>
+        <div class="feat-title">Fully Private</div>
+        <div class="feat-desc">Your financial data never leaves your device. No server receives your transactions. No analytics, no ads, no tracking. Backup and restore via a local JSON file you control.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORAGE & PRIVACY -->
+<section id="storage">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow" style="color:#7fb3f8">Data & Privacy</div>
+      <div class="section-title" style="color:white">Your data lives on<br><em style="font-style:italic;color:#7fb3f8">your device, not ours</em></div>
+      <div class="section-sub" style="color:rgba(255,255,255,.6)">LedgerLite has no server. No cloud. No subscription. Here's exactly how it works.</div>
+    </div>
+    <div class="storage-grid">
+      <div class="storage-card reveal" style="transition-delay:.05s">
+        <div class="tag tag-web">🌐 Web Version</div>
+        <h3>Browser-based</h3>
+        <p>Data is stored in your browser's localStorage — the same place browsers save settings and preferences. It persists between sessions on the same browser and device.</p>
+        <p style="margin-top:.75rem">Limitation: data doesn't sync across devices or browsers. Use the <strong style="color:rgba(255,255,255,.8)">Backup</strong> button to export a JSON file and <strong style="color:rgba(255,255,255,.8)">Restore</strong> it on another device.</p>
+      </div>
+      <div class="storage-card reveal" style="transition-delay:.1s">
+        <div class="tag tag-desktop">🖥️ Desktop App</div>
+        <h3>Native app via Electron</h3>
+        <p>The desktop app stores data in your OS user profile — a permanent location on disk that isn't affected by browser cache clearing or updates.</p>
+        <p style="margin-top:.75rem">Data path: <code style="font-family:var(--mono);font-size:.78rem;color:#7fb3f8">Windows: %APPDATA%\ledgerlite<br>Mac: ~/Library/Application Support/ledgerlite</code></p>
+      </div>
+    </div>
+    <div class="storage-note reveal" style="transition-delay:.15s">
+      <strong>⚡ The AI Insights feature</strong> does require an internet connection — it sends a structured summary of your financial data (no raw transaction descriptions) to Claude for analysis. No data is stored by Anthropic between sessions.
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="container">
+    <div class="reveal">
+      <h2>Ready to take control<br>of your books?</h2>
+      <p>Free to use. No account required to start. Your data never leaves your device.</p>
+      <div class="cta-btns">
+        <a href="app.html" class="btn-cta-white">🚀 Launch in Browser</a>
+        <a href="https://github.com/YOUR_USERNAME/ledgerlite/releases" class="btn-cta-outline" target="_blank">⬇ Download Desktop App</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div style="margin-bottom:.75rem">
+    <span style="font-size:.9rem;font-weight:600;color:rgba(255,255,255,.6)">Ledger<span style="color:#4a87f5">Lite</span></span>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:2rem;margin-bottom:.75rem;flex-wrap:wrap">
+    <a href="app.html">Launch App</a>
+    <a href="https://github.com/YOUR_USERNAME/ledgerlite" target="_blank">GitHub</a>
+    <a href="https://github.com/YOUR_USERNAME/ledgerlite/releases" target="_blank">Download Desktop</a>
+    <a href="https://github.com/YOUR_USERNAME/ledgerlite/issues" target="_blank">Report a Bug</a>
+  </div>
+  <div>Built with care · No tracking · No ads · No subscription</div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
